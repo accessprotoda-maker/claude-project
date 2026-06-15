@@ -165,7 +165,7 @@ def main():
 
         for i, h in enumerate(TIME_SLOTS):
             col = 2 + i
-            entries = slots.get(h, [])
+            entries = sorted(slots.get(h, []), key=lambda e: e[1])
             for sub in range(n_rows):
                 cell = ws.cell(row=row + sub, column=col)
                 if sub < len(entries):
