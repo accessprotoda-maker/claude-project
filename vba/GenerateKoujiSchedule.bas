@@ -2,38 +2,39 @@ Attribute VB_Name = "KoujiSchedule"
 Option Explicit
 
 ' =====================================================================
-' 入居者一覧(.xls/.xlsx)から住戸内工事日程表を生成するマクロ
+' Generates a unit construction schedule table from a resident list
+' (.xls/.xlsx).
 '
-' 使い方:
-'   1. このモジュールをExcelにインポートする
-'      (VBE: Alt+F11 -> ファイル -> ファイルのインポート -> このファイルを選択)
-'   2. Alt+F8 で「GenerateKoujiSchedule」を実行する
-'   3. 入居者一覧ファイルを選択する
-'   4. 工程表の保存先を指定する
+' How to use:
+'   1. Import this module into Excel
+'      (VBE: Alt+F11 -> File -> Import File -> select this file)
+'   2. Press Alt+F8, run "GenerateKoujiSchedule"
+'   3. Select the resident list file
+'   4. Specify where to save the schedule table
 ' =====================================================================
 
-Private Function W月() As String
-    W月 = ChrW(&H6708)
+Private Function FwMonth() As String
+    FwMonth = ChrW(&H6708)
 End Function
 
-Private Function W日() As String
-    W日 = ChrW(&H65E5)
+Private Function FwDay() As String
+    FwDay = ChrW(&H65E5)
 End Function
 
-Private Function W空室() As String
-    W空室 = ChrW(&H7A7A) & ChrW(&H5BA4)
+Private Function FwVacant() As String
+    FwVacant = ChrW(&H7A7A) & ChrW(&H5BA4)
 End Function
 
-Private Function W工期外() As String
-    W工期外 = ChrW(&H5DE5) & ChrW(&H671F) & ChrW(&H5916)
+Private Function FwOutOfPeriod() As String
+    FwOutOfPeriod = ChrW(&H5DE5) & ChrW(&H671F) & ChrW(&H5916)
 End Function
 
-Private Function Wカメラ() As String
-    Wカメラ = ChrW(&H30AB) & ChrW(&H30E1) & ChrW(&H30E9)
+Private Function FwCamera() As String
+    FwCamera = ChrW(&H30AB) & ChrW(&H30E1) & ChrW(&H30E9)
 End Function
 
-Private Function W受話器() As String
-    W受話器 = ChrW(&H53D7) & ChrW(&H8A71) & ChrW(&H5668)
+Private Function FwHandset() As String
+    FwHandset = ChrW(&H53D7) & ChrW(&H8A71) & ChrW(&H5668)
 End Function
 
 Private Function Weekdays() As Variant
@@ -41,8 +42,9 @@ Private Function Weekdays() As Variant
                       ChrW(&H91D1), ChrW(&H571F), ChrW(&H65E5))
 End Function
 
-' "6/19（金）13:00" や "3月28日(土)9：00" のような文字列を解析する
-' 戻り値: 配列(月, 日, 曜日, 時, 分) または Empty
+' Parses strings like "6/19(Fri)13:00" or "3-28(Sat)9:00" (with full-width
+' parentheses/colon and optional kanji month/day suffix).
+' Returns array(month, day, weekday, hour, minute) or Empty.
 Private Function ParseScheduleText(ByVal txt As String) As Variant
     If Len(Trim(txt)) = 0 Then
         ParseScheduleText = Empty
@@ -52,7 +54,7 @@ Private Function ParseScheduleText(ByVal txt As String) As Variant
     Dim re As Object
     Set re = CreateObject("VBScript.RegExp")
     re.Global = False
-    re.Pattern = "([0-9]{1,2})[/" & W月() & "]([0-9]{1,2})" & W日() & "?[" & _
+    re.Pattern = "([0-9]{1,2})[/" & FwMonth() & "]([0-9]{1,2})" & FwDay() & "?[" & _
                   ChrW(&HFF08) & "(](.)[" & ChrW(&HFF09) & ")]\s*([0-9]{1,2})[:" & _
                   ChrW(&HFF1A) & "]([0-9]{2})"
 
@@ -71,16 +73,16 @@ Private Function ParseScheduleText(ByVal txt As String) As Variant
     End If
 End Function
 
-' 備考から「カメラ付」「受話器」のオプション表示(A/B)を作る
+' Builds the A/B option suffix from the remark column (camera/handset).
 Private Function GetOptionMarker(ByVal remark As String) As String
     Dim suffix As String
     suffix = ""
-    If InStr(remark, Wカメラ()) > 0 Then suffix = suffix & "A"
-    If InStr(remark, W受話器()) > 0 Then suffix = suffix & "B"
+    If InStr(remark, FwCamera()) > 0 Then suffix = suffix & "A"
+    If InStr(remark, FwHandset()) > 0 Then suffix = suffix & "B"
     GetOptionMarker = suffix
 End Function
 
-' 部屋番号を整形する（数値で読み込まれた場合に小数点を除去）
+' Formats a room number, stripping a trailing ".0" if it was read as a number.
 Private Function FormatRoom(ByVal v As Variant) As String
     If IsNumeric(v) And Not IsEmpty(v) And Trim(CStr(v)) <> "" Then
         If CDbl(v) = Int(CDbl(v)) Then
@@ -91,7 +93,7 @@ Private Function FormatRoom(ByVal v As Variant) As String
     FormatRoom = Trim(CStr(v))
 End Function
 
-' 配列を分単位で昇順ソートする（要素は (room, minute, option) の配列）
+' Sorts an array of (room, minute, option) entries ascending by minute.
 Private Sub SortEntriesByMinute(ByRef entries() As Variant, ByVal n As Long)
     Dim i As Long, j As Long
     Dim tmp As Variant
@@ -109,7 +111,7 @@ End Sub
 Sub GenerateKoujiSchedule()
     Dim srcPath As Variant
     srcPath = Application.GetOpenFilename( _
-        "Excelファイル (*.xls;*.xlsx),*.xls;*.xlsx", , "入居者一覧を選択してください")
+        "Excel Files (*.xls;*.xlsx),*.xls;*.xlsx", , "Select resident list file")
     If srcPath = False Then Exit Sub
 
     Application.ScreenUpdating = False
@@ -121,10 +123,10 @@ Sub GenerateKoujiSchedule()
     Dim buildingName As String
     buildingName = CStr(srcWB.Sheets(1).Cells(1, 1).Value)
 
-    ' --- データ収集 ---
+    ' --- Collect data ---
     Dim dateKeys As Object, slotData As Object
-    Set dateKeys = CreateObject("Scripting.Dictionary")  ' key: 月*100+日 -> 曜日
-    Set slotData = CreateObject("Scripting.Dictionary")  ' key: (月*100+日)*100+時 -> Collection
+    Set dateKeys = CreateObject("Scripting.Dictionary")  ' key: month*100+day -> weekday
+    Set slotData = CreateObject("Scripting.Dictionary")  ' key: (month*100+day)*100+hour -> Collection
 
     Dim vacantList As Collection, notSubmittedList As Collection, outOfPeriodList As Collection
     Set vacantList = New Collection
@@ -147,9 +149,9 @@ Sub GenerateKoujiSchedule()
                     schedText = CStr(ws.Cells(r, 5).Value)
                     remarkVal = CStr(ws.Cells(r, 6).Value)
 
-                    If nameVal = W空室() Then
+                    If nameVal = FwVacant() Then
                         vacantList.Add room
-                    ElseIf InStr(remarkVal, W工期外()) > 0 Then
+                    ElseIf InStr(remarkVal, FwOutOfPeriod()) > 0 Then
                         Dim oentry(1) As Variant
                         oentry(0) = room
                         oentry(1) = ParseScheduleText(schedText)
@@ -186,12 +188,12 @@ Sub GenerateKoujiSchedule()
 
     srcWB.Close SaveChanges:=False
 
-    ' --- 工程表シート作成 ---
+    ' --- Build the schedule sheet ---
     Dim outWB As Workbook
     Set outWB = Workbooks.Add
     Dim sht As Worksheet
     Set sht = outWB.Sheets(1)
-    sht.Name = ChrW(&H5DE5) & ChrW(&H7A0B) & ChrW(&H8868)  ' 工程表
+    sht.Name = ChrW(&H5DE5) & ChrW(&H7A0B) & ChrW(&H8868)  ' "Schedule"
 
     Const TOTAL_COLS As Long = 9
     Dim timeSlots(7) As Long
@@ -203,7 +205,7 @@ Sub GenerateKoujiSchedule()
     ORANGE = RGB(255, 192, 0)
     GRAY = RGB(217, 217, 217)
 
-    ' タイトル
+    ' Title
     With sht.Range(sht.Cells(1, 1), sht.Cells(1, TOTAL_COLS))
         .Merge
         .Value = buildingName & ChrW(&H3000) & ChrW(&H69D8) & ChrW(&H3000) & _
@@ -218,7 +220,7 @@ Sub GenerateKoujiSchedule()
     End With
     sht.Rows(1).RowHeight = 30
 
-    ' 注記
+    ' Note
     With sht.Range(sht.Cells(2, 1), sht.Cells(2, TOTAL_COLS))
         .Merge
         .Value = ChrW(&HFF0A) & ChrW(&H8868) & ChrW(&H4E2D) & ChrW(&H306E) & ChrW(&H90E8) & _
@@ -233,7 +235,7 @@ Sub GenerateKoujiSchedule()
     headerRow1 = 3
     headerRow2 = 4
 
-    ' 工事予定日
+    ' "Construction date" header
     With sht.Range(sht.Cells(headerRow1, 1), sht.Cells(headerRow2, 1))
         .Merge
         .Value = ChrW(&H5DE5) & ChrW(&H4E8B) & ChrW(&H4E88) & ChrW(&H5B9A) & ChrW(&H65E5)
@@ -242,7 +244,7 @@ Sub GenerateKoujiSchedule()
         .VerticalAlignment = xlCenter
     End With
 
-    ' 午前
+    ' Morning header
     With sht.Range(sht.Cells(headerRow1, 2), sht.Cells(headerRow1, 4))
         .Merge
         .Value = ChrW(&H5348) & ChrW(&H524D) & ChrW(&HFF08) & "9" & ChrW(&H6642) & _
@@ -252,7 +254,7 @@ Sub GenerateKoujiSchedule()
         .VerticalAlignment = xlCenter
     End With
 
-    ' 午後
+    ' Afternoon header
     With sht.Range(sht.Cells(headerRow1, 5), sht.Cells(headerRow1, TOTAL_COLS))
         .Merge
         .Value = ChrW(&H5348) & ChrW(&H5F8C) & ChrW(&HFF08) & "13" & ChrW(&H6642) & _
@@ -262,11 +264,11 @@ Sub GenerateKoujiSchedule()
         .VerticalAlignment = xlCenter
     End With
 
-    ' 時間帯ラベル
+    ' Time slot labels
     Dim i As Long
     For i = 0 To 7
         With sht.Cells(headerRow2, 2 + i)
-            .Value = timeSlots(i) & ChrW(&H6642) & ChrW(&H983C)  ' n時頃
+            .Value = timeSlots(i) & ChrW(&H6642) & ChrW(&H983C)  ' "n o'clock-ish"
             .Font.Bold = True
             .HorizontalAlignment = xlCenter
             .VerticalAlignment = xlCenter
@@ -278,11 +280,11 @@ Sub GenerateKoujiSchedule()
         .Borders.Weight = xlThin
     End With
 
-    ' --- データ行 ---
+    ' --- Data rows ---
     Dim row As Long
     row = headerRow2 + 1
 
-    ' 日付キーを昇順ソート
+    ' Sort date keys ascending
     Dim keysArr As Variant
     Dim nKeys As Long
     nKeys = dateKeys.Count
@@ -305,7 +307,7 @@ Sub GenerateKoujiSchedule()
         Next a
     End If
 
-    ' 初日の前日を共用部工事日として追加
+    ' Add the common-area construction day before the first unit day
     If nKeys > 0 Then
         Dim firstMon As Long, firstDay As Long, firstWd As String
         firstMon = sortedKeys(0) \ 100
@@ -326,7 +328,7 @@ Sub GenerateKoujiSchedule()
 
         With sht.Range(sht.Cells(row, 1), sht.Cells(row, 1))
             .Merge
-            .Value = Month(caDate) & W月() & Day(caDate) & W日() & ChrW(&HFF08) & wds(prevWdIdx) & ChrW(&HFF09)
+            .Value = Month(caDate) & FwMonth() & Day(caDate) & FwDay() & ChrW(&HFF08) & wds(prevWdIdx) & ChrW(&HFF09)
             .Font.Bold = True
             .HorizontalAlignment = xlCenter
             .VerticalAlignment = xlCenter
@@ -356,7 +358,7 @@ Sub GenerateKoujiSchedule()
         row = row + 1
     End If
 
-    ' 各日付の行
+    ' One block of rows per date
     For a = 0 To nKeys - 1
         Dim dkey2 As Long, mon2 As Long, day2 As Long, wd2 As String
         dkey2 = sortedKeys(a)
@@ -364,7 +366,7 @@ Sub GenerateKoujiSchedule()
         day2 = dkey2 Mod 100
         wd2 = dateKeys(dkey2)
 
-        ' この日の最大同時刻件数を求める
+        ' Number of rows needed = max number of bookings in any slot for this date
         Dim nRows As Long
         nRows = 1
         For i = 0 To 7
@@ -375,10 +377,10 @@ Sub GenerateKoujiSchedule()
             End If
         Next i
 
-        ' 日付セル
+        ' Date cell
         With sht.Range(sht.Cells(row, 1), sht.Cells(row + nRows - 1, 1))
             .Merge
-            .Value = mon2 & W月() & day2 & W日() & ChrW(&HFF08) & wd2 & ChrW(&HFF09)
+            .Value = mon2 & FwMonth() & day2 & FwDay() & ChrW(&HFF08) & wd2 & ChrW(&HFF09)
             .Font.Bold = True
             .HorizontalAlignment = xlCenter
             .VerticalAlignment = xlCenter
@@ -433,7 +435,7 @@ Sub GenerateKoujiSchedule()
         row = row + nRows
     Next a
 
-    ' 列幅・行高
+    ' Column widths / row heights
     sht.Columns(1).ColumnWidth = 16
     For i = 0 To 7
         sht.Columns(2 + i).ColumnWidth = 10
@@ -442,7 +444,7 @@ Sub GenerateKoujiSchedule()
         sht.Rows(r).RowHeight = 30
     Next r
 
-    ' オプション凡例
+    ' Option legend (camera/handset)
     Dim hasOption As Boolean
     hasOption = False
     Dim allKeys As Variant
@@ -468,7 +470,7 @@ Sub GenerateKoujiSchedule()
         row = row + 1
     End If
 
-    ' 工期外希望
+    ' Units that requested a schedule outside the construction period
     row = row + 1
     Dim oitem As Variant
     For Each oitem In outOfPeriodList
@@ -490,7 +492,7 @@ Sub GenerateKoujiSchedule()
         row = row + 1
     Next oitem
 
-    ' 未提出
+    ' Units that have not yet submitted a schedule
     If notSubmittedList.Count > 0 Then
         Dim ns As String
         ns = ChrW(&H672A) & ChrW(&H63D0) & ChrW(&H51FA) & ChrW(&H3000)
@@ -510,7 +512,7 @@ Sub GenerateKoujiSchedule()
         row = row + 1
     End If
 
-    ' 空室
+    ' Vacant units
     If vacantList.Count > 0 Then
         Dim vc As String
         vc = ChrW(&H7A7A) & ChrW(&H5BA4) & ChrW(&H3000)
@@ -528,7 +530,7 @@ Sub GenerateKoujiSchedule()
         row = row + 1
     End If
 
-    ' --- 印刷設定（A4横1ページ） ---
+    ' --- Print setup: fit to one A4 landscape page ---
     With sht.PageSetup
         .PaperSize = xlPaperA4
         .Orientation = xlLandscape
@@ -545,7 +547,7 @@ Sub GenerateKoujiSchedule()
     Application.ScreenUpdating = True
     Application.Calculation = xlCalculationAutomatic
 
-    ' --- 保存 ---
+    ' --- Save the new workbook ---
     Dim outPath As Variant
     outPath = Application.GetSaveAsFilename( _
         InitialFileName:=ChrW(&H5DE5) & ChrW(&H7A0B) & ChrW(&H8868) & ".xlsx", _
