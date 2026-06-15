@@ -93,6 +93,22 @@ Private Function FormatRoom(ByVal v As Variant) As String
     FormatRoom = Trim(CStr(v))
 End Function
 
+' Builds the "common-area construction" cell text, optionally with a
+' "(start~end)" time range when the period does not cover the full day.
+Private Function CommonAreaLabel(ByVal startLabel As String, ByVal endLabel As String) As String
+    Dim s As String
+    s = ChrW(&H5171) & ChrW(&H3000) & ChrW(&H7528) & ChrW(&H3000) & ChrW(&H90E8) & _
+        ChrW(&H3000) & ChrW(&H5DE5) & ChrW(&H3000) & ChrW(&H4E8B)
+    If startLabel <> "" Then
+        s = s & ChrW(&HFF08) & startLabel & ChrW(&H301C) & endLabel & ChrW(&HFF09)
+    End If
+    s = s & Chr(10) & _
+        ChrW(&HFF08) & ChrW(&H304A) & ChrW(&H90E8) & ChrW(&H5C4B) & ChrW(&H306E) & _
+        ChrW(&H5DE5) & ChrW(&H7A0B) & ChrW(&H306F) & ChrW(&H51FA) & ChrW(&H6765) & _
+        ChrW(&H307E) & ChrW(&H305B) & ChrW(&H3093) & ChrW(&HFF09)
+    CommonAreaLabel = s
+End Function
+
 ' Parses "M/D H:MM" (or "M/D HH:MM") into array(month, day, hour, minute).
 Private Function ParseDateTimeInput(ByVal s As String) As Variant
     Dim parts() As String
@@ -332,10 +348,36 @@ Sub GenerateKoujiSchedule()
 
     ' Add the common-area construction day(s) before the first unit day.
     ' The period (start/end date+time) is entered by the user, so it can
-    ' span multiple days and/or end at a specific time (e.g. 15:00) on the
-    ' last day.
+    ' span multiple days. If the period ends partway through a day (e.g.
+    ' 15:00) and that day also has unit work scheduled, the time slots
+    ' from the end time onward are used for the unit work instead of
+    ' being blocked out.
     Dim wds As Variant
     wds = Weekdays()
+
+    Dim mergedDates As Object
+    Set mergedDates = CreateObject("Scripting.Dictionary")  ' dkey -> True
+
+    Dim wdIdxFirst As Long
+    Dim defCaDate As Date
+    Dim promptStart As String, promptEnd As String, titleCa As String
+    Dim startInput As String, endInput As String
+    Dim startParts As Variant, endParts As Variant
+    Dim caStartDate As Date, caEndDate As Date
+    Dim caStartHour As Long, caEndHour As Long
+    Dim caStartLabel As String, caEndLabel As String
+    Dim caDay As Date
+    Dim effStartHour As Long, effEndHour As Long
+    Dim effStartLabel As String, effEndLabel As String
+    Dim dkeyForDay As Long
+    Dim isFullDay As Boolean
+    Dim diffDays As Long, wdIdxForDay As Long
+    Dim firstBlockedCol As Long, lastBlockedCol As Long
+    Dim mDkey As Long, mWd As String, mNRows As Long, mSkey As Long
+    Dim col3 As Long, skey3 As Long
+    Dim entries3() As Variant, nEntries3 As Long
+    Dim eRoom3 As String, eMin3 As Long, eOpt3 As String
+    Dim c3 As Range
 
     If nKeys > 0 Then
         Dim firstMon As Long, firstDay As Long, firstWd As String
@@ -343,24 +385,19 @@ Sub GenerateKoujiSchedule()
         firstDay = sortedKeys(0) Mod 100
         firstWd = dateKeys(sortedKeys(0))
 
-        Dim wdIdx As Long, prevWdIdx As Long
-        wdIdx = 0
+        wdIdxFirst = 0
         For a = 0 To 6
-            If wds(a) = firstWd Then wdIdx = a
+            If wds(a) = firstWd Then wdIdxFirst = a
         Next a
-        prevWdIdx = (wdIdx - 1 + 7) Mod 7
 
-        Dim defCaDate As Date
         defCaDate = DateSerial(2001, firstMon, firstDay) - 1
 
-        Dim promptStart As String, promptEnd As String, titleCa As String
         titleCa = ChrW(&H5171) & ChrW(&H7528) & ChrW(&H90E8) & ChrW(&H5DE5) & ChrW(&H4E8B)
         promptStart = titleCa & ChrW(&H306E) & ChrW(&H958B) & ChrW(&H59CB) & ChrW(&H65E5) & _
                       ChrW(&H6642) & " (M/D H:MM)"
         promptEnd = titleCa & ChrW(&H306E) & ChrW(&H7D42) & ChrW(&H4E86) & ChrW(&H65E5) & _
                     ChrW(&H6642) & " (M/D H:MM)"
 
-        Dim startInput As String, endInput As String
         startInput = InputBox(promptStart, titleCa, Month(defCaDate) & "/" & Day(defCaDate) & " 9:00")
         If Trim(startInput) = "" Then
             outWB.Close SaveChanges:=False
@@ -373,65 +410,167 @@ Sub GenerateKoujiSchedule()
             Exit Sub
         End If
 
-        Dim startParts As Variant, endParts As Variant
         On Error GoTo CaInputError
         startParts = ParseDateTimeInput(startInput)
         endParts = ParseDateTimeInput(endInput)
         On Error GoTo 0
 
-        Dim caStartDate As Date, caEndDate As Date
-        Dim caStartTime As String, caEndTime As String
         caStartDate = DateSerial(2001, startParts(0), startParts(1))
-        caStartTime = Format(startParts(2), "0") & ":" & Format(startParts(3), "00")
         caEndDate = DateSerial(2001, endParts(0), endParts(1))
-        caEndTime = Format(endParts(2), "0") & ":" & Format(endParts(3), "00")
+        caStartHour = startParts(2)
+        caEndHour = endParts(2)
+        caStartLabel = Format(startParts(2), "0") & ":" & Format(startParts(3), "00")
+        caEndLabel = Format(endParts(2), "0") & ":" & Format(endParts(3), "00")
 
-        Dim caDay As Date
         For caDay = caStartDate To caEndDate Step 1
-            Dim dayWdIdx As Long
-            dayWdIdx = Weekday(caDay, vbMonday) - 1  ' 0=Mon .. 6=Sun
-
-            Dim dStart As String, dEnd As String
-            If caDay = caStartDate Then dStart = caStartTime Else dStart = "9:00"
-            If caDay = caEndDate Then dEnd = caEndTime Else dEnd = "18:00"
-
-            With sht.Range(sht.Cells(row, 1), sht.Cells(row, 1))
-                .Merge
-                .Value = Month(caDay) & FwMonth() & Day(caDay) & FwDay() & ChrW(&HFF08) & wds(dayWdIdx) & ChrW(&HFF09)
-                .Font.Bold = True
-                .HorizontalAlignment = xlCenter
-                .VerticalAlignment = xlCenter
-            End With
-
-            Dim caLabel As String
-            caLabel = ChrW(&H5171) & ChrW(&H3000) & ChrW(&H7528) & ChrW(&H3000) & ChrW(&H90E8) & _
-                      ChrW(&H3000) & ChrW(&H5DE5) & ChrW(&H3000) & ChrW(&H4E8B)
-            If dStart <> "9:00" Or dEnd <> "18:00" Then
-                caLabel = caLabel & ChrW(&HFF08) & dStart & ChrW(&H301C) & dEnd & ChrW(&HFF09)
+            If caDay = caStartDate Then
+                effStartHour = caStartHour
+                effStartLabel = caStartLabel
+            Else
+                effStartHour = 9
+                effStartLabel = "9:00"
             End If
-            caLabel = caLabel & Chr(10) & _
-                      ChrW(&HFF08) & ChrW(&H304A) & ChrW(&H90E8) & ChrW(&H5C4B) & ChrW(&H306E) & _
-                      ChrW(&H5DE5) & ChrW(&H7A0B) & ChrW(&H306F) & ChrW(&H51FA) & ChrW(&H6765) & _
-                      ChrW(&H307E) & ChrW(&H305B) & ChrW(&H3093) & ChrW(&HFF09)
+            If caDay = caEndDate Then
+                effEndHour = caEndHour
+                effEndLabel = caEndLabel
+            Else
+                effEndHour = 18
+                effEndLabel = "18:00"
+            End If
 
-            With sht.Range(sht.Cells(row, 2), sht.Cells(row, TOTAL_COLS))
-                .Merge
-                .Value = caLabel
-                .Font.Bold = True
-                .Font.Size = 12
-                .HorizontalAlignment = xlCenter
-                .VerticalAlignment = xlCenter
-                .WrapText = True
-                .Interior.Color = GRAY
-            End With
+            dkeyForDay = Month(caDay) * 100 + Day(caDay)
+            isFullDay = (effStartHour <= 9 And effEndHour >= 18)
 
-            With sht.Range(sht.Cells(row, 1), sht.Cells(row, TOTAL_COLS))
-                .Borders.LineStyle = xlContinuous
-                .Borders.Weight = xlThin
-                .Interior.Color = GRAY
-            End With
-            sht.Rows(row).RowHeight = 40
-            row = row + 1
+            If isFullDay Then
+                ' The whole day is common-area construction.
+                diffDays = CLng(DateSerial(2001, firstMon, firstDay) - caDay)
+                wdIdxForDay = ((wdIdxFirst - diffDays) Mod 7 + 7) Mod 7
+
+                With sht.Range(sht.Cells(row, 1), sht.Cells(row, 1))
+                    .Merge
+                    .Value = Month(caDay) & FwMonth() & Day(caDay) & FwDay() & ChrW(&HFF08) & wds(wdIdxForDay) & ChrW(&HFF09)
+                    .Font.Bold = True
+                    .HorizontalAlignment = xlCenter
+                    .VerticalAlignment = xlCenter
+                End With
+
+                With sht.Range(sht.Cells(row, 2), sht.Cells(row, TOTAL_COLS))
+                    .Merge
+                    .Value = CommonAreaLabel("", "")
+                    .Font.Bold = True
+                    .Font.Size = 12
+                    .HorizontalAlignment = xlCenter
+                    .VerticalAlignment = xlCenter
+                    .WrapText = True
+                    .Interior.Color = GRAY
+                End With
+
+                With sht.Range(sht.Cells(row, 1), sht.Cells(row, TOTAL_COLS))
+                    .Borders.LineStyle = xlContinuous
+                    .Borders.Weight = xlThin
+                    .Interior.Color = GRAY
+                End With
+                sht.Rows(row).RowHeight = 40
+                row = row + 1
+            Else
+                ' Partial day: some time slots are common-area, the rest
+                ' (if any) are available for unit work.
+                firstBlockedCol = -1
+                lastBlockedCol = -1
+                For i = 0 To 7
+                    If timeSlots(i) >= effStartHour And timeSlots(i) < effEndHour Then
+                        If firstBlockedCol = -1 Then firstBlockedCol = 2 + i
+                        lastBlockedCol = 2 + i
+                    End If
+                Next i
+
+                mDkey = dkeyForDay
+                If dateKeys.Exists(mDkey) Then
+                    mWd = dateKeys(mDkey)
+                    mNRows = 1
+                    For i = 0 To 7
+                        mSkey = mDkey * 100 + timeSlots(i)
+                        If slotData.Exists(mSkey) Then
+                            If slotData(mSkey).Count > mNRows Then mNRows = slotData(mSkey).Count
+                        End If
+                    Next i
+                    mergedDates.Add mDkey, True
+                Else
+                    diffDays = CLng(DateSerial(2001, firstMon, firstDay) - caDay)
+                    wdIdxForDay = ((wdIdxFirst - diffDays) Mod 7 + 7) Mod 7
+                    mWd = wds(wdIdxForDay)
+                    mNRows = 1
+                End If
+
+                ' Date cell
+                With sht.Range(sht.Cells(row, 1), sht.Cells(row + mNRows - 1, 1))
+                    .Merge
+                    .Value = Month(caDay) & FwMonth() & Day(caDay) & FwDay() & ChrW(&HFF08) & mWd & ChrW(&HFF09)
+                    .Font.Bold = True
+                    .HorizontalAlignment = xlCenter
+                    .VerticalAlignment = xlCenter
+                End With
+
+                ' Common-area block (merged across the blocked columns/rows)
+                If firstBlockedCol >= 2 Then
+                    With sht.Range(sht.Cells(row, firstBlockedCol), sht.Cells(row + mNRows - 1, lastBlockedCol))
+                        .Merge
+                        .Value = CommonAreaLabel(effStartLabel, effEndLabel)
+                        .Font.Bold = True
+                        .Font.Size = 12
+                        .HorizontalAlignment = xlCenter
+                        .VerticalAlignment = xlCenter
+                        .WrapText = True
+                        .Interior.Color = GRAY
+                    End With
+                End If
+
+                ' Unit-work cells for the remaining (non-blocked) columns
+                For i = 0 To 7
+                    col3 = 2 + i
+                    If col3 < firstBlockedCol Or col3 > lastBlockedCol Then
+                        skey3 = mDkey * 100 + timeSlots(i)
+
+                        nEntries3 = 0
+                        If slotData.Exists(skey3) Then
+                            nEntries3 = slotData(skey3).Count
+                            ReDim entries3(0 To nEntries3 - 1)
+                            For k = 1 To nEntries3
+                                entries3(k - 1) = slotData(skey3)(k)
+                            Next k
+                            SortEntriesByMinute entries3, nEntries3
+                        End If
+
+                        For sub_ = 0 To mNRows - 1
+                            Set c3 = sht.Cells(row + sub_, col3)
+                            c3.HorizontalAlignment = xlCenter
+                            c3.VerticalAlignment = xlCenter
+                            c3.WrapText = True
+                            If sub_ < nEntries3 Then
+                                eRoom3 = entries3(sub_)(0)
+                                eMin3 = entries3(sub_)(1)
+                                eOpt3 = entries3(sub_)(2)
+                                c3.Value = timeSlots(i) & ":" & Format(eMin3, "00") & Chr(10) & eRoom3 & eOpt3
+                                c3.Font.Bold = True
+                                If eOpt3 <> "" Then
+                                    c3.Interior.Color = ORANGE
+                                Else
+                                    c3.Interior.Color = YELLOW
+                                End If
+                            End If
+                        Next sub_
+                    End If
+                Next i
+
+                With sht.Range(sht.Cells(row, 1), sht.Cells(row + mNRows - 1, TOTAL_COLS))
+                    .Borders.LineStyle = xlContinuous
+                    .Borders.Weight = xlThin
+                End With
+                For r = row To row + mNRows - 1
+                    sht.Rows(r).RowHeight = 40
+                Next r
+                row = row + mNRows
+            End If
         Next caDay
     End If
     GoTo CaInputDone
@@ -445,10 +584,13 @@ CaInputError:
     Exit Sub
 CaInputDone:
 
-    ' One block of rows per date
+    ' One block of rows per date (dates already rendered together with the
+    ' common-area construction row are skipped here).
     For a = 0 To nKeys - 1
         Dim dkey2 As Long, mon2 As Long, day2 As Long, wd2 As String
         dkey2 = sortedKeys(a)
+        If mergedDates.Exists(dkey2) Then GoTo NextDate
+
         mon2 = dkey2 \ 100
         day2 = dkey2 Mod 100
         wd2 = dateKeys(dkey2)
@@ -520,6 +662,7 @@ CaInputDone:
         End With
 
         row = row + nRows
+NextDate:
     Next a
 
     ' Column widths / row heights
