@@ -11,6 +11,7 @@ import xlrd
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.properties import PageSetupProperties
 
 TIME_SLOTS = [9, 10, 11, 13, 14, 15, 16, 17]
 AM_SLOTS = [9, 10, 11]
@@ -281,6 +282,18 @@ def main():
         cell = ws.cell(row=row, column=1, value=f"空室　{', '.join(vacant)}")
         cell.font = Font(color="FF0000", bold=True)
         row += 1
+
+    # A4用紙1枚に収まるよう印刷設定
+    ws.page_setup.paperSize = ws.PAPERSIZE_A4
+    ws.page_setup.orientation = "landscape"
+    ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 1
+    ws.page_margins.left = 0.4
+    ws.page_margins.right = 0.4
+    ws.page_margins.top = 0.4
+    ws.page_margins.bottom = 0.4
+    ws.print_area = f"A1:{get_column_letter(TOTAL_COLS)}{row - 1}"
 
     wb.save(out_path)
     print(f"saved: {out_path}")
