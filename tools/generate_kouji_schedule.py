@@ -71,8 +71,11 @@ def parse_schedule(text):
     }
 
 
-def load_rooms(path):
-    wb_in = xlrd.open_workbook(path)
+def load_rooms(path_or_bytes):
+    if isinstance(path_or_bytes, bytes):
+        wb_in = xlrd.open_workbook(file_contents=path_or_bytes)
+    else:
+        wb_in = xlrd.open_workbook(path_or_bytes)
     building_name = wb_in.sheet_by_index(0).cell_value(0, 0)
 
     rooms = []
@@ -122,11 +125,9 @@ def build_table_data(rooms):
     return dates, out_of_period, vacant, not_submitted
 
 
-def main():
-    in_path = sys.argv[1] if len(sys.argv) > 1 else "入居者一覧.xls"
-    out_path = sys.argv[2] if len(sys.argv) > 2 else "工程表.xlsx"
-
-    building_name, rooms = load_rooms(in_path)
+def generate_workbook(path_or_bytes):
+    """入居者一覧(.xls)から工程表のWorkbookを生成する。"""
+    building_name, rooms = load_rooms(path_or_bytes)
     dates, out_of_period, vacant, not_submitted = build_table_data(rooms)
 
     wb = Workbook()
@@ -295,6 +296,14 @@ def main():
     ws.page_margins.bottom = 0.4
     ws.print_area = f"A1:{get_column_letter(TOTAL_COLS)}{row - 1}"
 
+    return wb
+
+
+def main():
+    in_path = sys.argv[1] if len(sys.argv) > 1 else "入居者一覧.xls"
+    out_path = sys.argv[2] if len(sys.argv) > 2 else "工程表.xlsx"
+
+    wb = generate_workbook(in_path)
     wb.save(out_path)
     print(f"saved: {out_path}")
 
