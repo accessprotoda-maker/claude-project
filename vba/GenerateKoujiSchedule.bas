@@ -722,24 +722,26 @@ NextDate:
     Next oitem
 
     ' Units that have not yet submitted a schedule
+    Dim ns As String
+    ns = ChrW(&H672A) & ChrW(&H63D0) & ChrW(&H51FA) & ChrW(&H3000)
+    Dim item As Variant
+    Dim first As Boolean
     If notSubmittedList.Count > 0 Then
-        Dim ns As String
-        ns = ChrW(&H672A) & ChrW(&H63D0) & ChrW(&H51FA) & ChrW(&H3000)
-        Dim item As Variant
-        Dim first As Boolean
         first = True
         For Each item In notSubmittedList
             If Not first Then ns = ns & ", "
             ns = ns & item
             first = False
         Next item
-        With sht.Cells(row, 1)
-            .Value = ns
-            .Font.Color = RGB(255, 0, 0)
-            .Font.Bold = True
-        End With
-        row = row + 1
+    Else
+        ns = ns & ChrW(&H7121) & ChrW(&H3057)  ' "Nashi" (none)
     End If
+    With sht.Cells(row, 1)
+        .Value = ns
+        .Font.Color = RGB(255, 0, 0)
+        .Font.Bold = True
+    End With
+    row = row + 1
 
     ' Vacant units
     If vacantList.Count > 0 Then
