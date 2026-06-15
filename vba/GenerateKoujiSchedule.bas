@@ -21,6 +21,10 @@ Private Function FwDay() As String
     FwDay = ChrW(&H65E5)
 End Function
 
+Private Function FwRoomNumberHeader() As String
+    FwRoomNumberHeader = ChrW(&H90E8) & ChrW(&H5C4B) & ChrW(&H756A) & ChrW(&H53F7)
+End Function
+
 Private Function FwVacant() As String
     FwVacant = ChrW(&H7A7A) & ChrW(&H5BA4)
 End Function
@@ -184,6 +188,7 @@ Sub GenerateKoujiSchedule()
                 If Trim(CStr(roomVal)) <> "" Then
                     Dim room As String, nameVal As String, schedText As String, remarkVal As String
                     room = FormatRoom(roomVal)
+                    If room <> FwRoomNumberHeader() Then
                     nameVal = CStr(ws.Cells(r, 2).Value)
                     schedText = CStr(ws.Cells(r, 5).Value)
                     remarkVal = CStr(ws.Cells(r, 6).Value)
@@ -219,6 +224,7 @@ Sub GenerateKoujiSchedule()
                             entry(2) = GetOptionMarker(remarkVal)
                             slotData(skey).Add entry
                         End If
+                    End If
                     End If
                 End If
             Next r
