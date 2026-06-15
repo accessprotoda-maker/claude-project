@@ -17,7 +17,7 @@ AM_SLOTS = [9, 10, 11]
 PM_SLOTS = [13, 14, 15, 16, 17]
 TOTAL_COLS = 1 + len(AM_SLOTS) + len(PM_SLOTS)  # 工事予定日 + 8時間帯
 
-DATE_RE = re.compile(r"(\d{1,2})/(\d{1,2})（(.)）\s*(\d{1,2})[:：](\d{2})")
+DATE_RE = re.compile(r"(\d{1,2})[/月](\d{1,2})日?[（(](.)[）)]\s*(\d{1,2})[:：](\d{2})")
 
 THIN = Side(style="thin", color="000000")
 BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
