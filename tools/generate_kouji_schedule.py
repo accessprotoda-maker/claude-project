@@ -173,8 +173,6 @@ def main():
                     cell.value = f"{h}:{minute:02d}\n{room}"
                     cell.fill = YELLOW
                     cell.font = Font(bold=True)
-                elif sub == 0:
-                    cell.value = f"{h}:00"
                 cell.alignment = CENTER
 
         for r2 in range(row, row + n_rows):
