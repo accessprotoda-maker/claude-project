@@ -22,8 +22,30 @@ DATE_RE = re.compile(r"(\d{1,2})[/月](\d{1,2})日?[（(](.)[）)]\s*(\d{1,2})[:
 THIN = Side(style="thin", color="000000")
 BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 YELLOW = PatternFill("solid", fgColor="FFFF00")
+ORANGE = PatternFill("solid", fgColor="FFC000")
 CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
 LEFT = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+
+def option_marker(remark):
+    """備考からインターホン受話器・カメラ付きオプションの表示を作る。"""
+    if not remark:
+        return None
+    has_camera = "カメラ" in remark
+    has_handset = "受話器" in remark
+    if has_camera and has_handset:
+        return "★カメラ付・受話器"
+    if has_camera:
+        return "★カメラ付"
+    if has_handset:
+        return "★受話器"
+    return None
+
+
+def format_room(room):
+    if isinstance(room, float) and room == int(room):
+        return str(int(room))
+    return str(room).strip()
 
 
 def parse_schedule(text):
@@ -42,24 +64,27 @@ def parse_schedule(text):
 
 def load_rooms(path):
     wb_in = xlrd.open_workbook(path)
-    sheet = wb_in.sheet_by_index(0)
-    building_name = sheet.cell_value(0, 0)
+    building_name = wb_in.sheet_by_index(0).cell_value(0, 0)
 
     rooms = []
-    for r in range(2, sheet.nrows):
-        room = sheet.cell_value(r, 0)
-        if not room:
+    for sheet in wb_in.sheets():
+        if sheet.nrows < 3:
             continue
-        name = sheet.cell_value(r, 1)
-        schedule_text = sheet.cell_value(r, 4)
-        remark = sheet.cell_value(r, 5)
-        rooms.append({
-            "room": room,
-            "name": name,
-            "schedule": parse_schedule(schedule_text) if schedule_text else None,
-            "schedule_text": schedule_text,
-            "remark": remark,
-        })
+        for r in range(2, sheet.nrows):
+            room = sheet.cell_value(r, 0)
+            if not room:
+                continue
+            name = sheet.cell_value(r, 1)
+            schedule_text = sheet.cell_value(r, 4)
+            remark = sheet.cell_value(r, 5)
+            rooms.append({
+                "room": format_room(room),
+                "name": name,
+                "schedule": parse_schedule(schedule_text) if schedule_text else None,
+                "schedule_text": schedule_text,
+                "remark": remark,
+                "option": option_marker(remark),
+            })
     return building_name, rooms
 
 
@@ -83,7 +108,7 @@ def build_table_data(rooms):
         key = (sched["month"], sched["day"])
         d = dates.setdefault(key, {"weekday": sched["weekday"],
                                     "slots": {h: [] for h in TIME_SLOTS}})
-        d["slots"].setdefault(sched["hour"], []).append((r["room"], sched["minute"]))
+        d["slots"].setdefault(sched["hour"], []).append((r["room"], sched["minute"], r["option"]))
 
     return dates, out_of_period, vacant, not_submitted
 
@@ -169,9 +194,14 @@ def main():
             for sub in range(n_rows):
                 cell = ws.cell(row=row + sub, column=col)
                 if sub < len(entries):
-                    room, minute = entries[sub]
-                    cell.value = f"{h}:{minute:02d}\n{room}"
-                    cell.fill = YELLOW
+                    room, minute, option = entries[sub]
+                    value = f"{h}:{minute:02d}\n{room}"
+                    if option:
+                        value += f"\n{option}"
+                        cell.fill = ORANGE
+                    else:
+                        cell.fill = YELLOW
+                    cell.value = value
                     cell.font = Font(bold=True)
                 cell.alignment = CENTER
 
@@ -187,6 +217,15 @@ def main():
         ws.column_dimensions[get_column_letter(2 + i)].width = 10
     for r2 in range(header_row2 + 1, row):
         ws.row_dimensions[r2].height = 30
+
+    # オプション（インターホン受話器・カメラ付き）凡例
+    has_option = any(opt for d in dates.values() for entries in d["slots"].values()
+                      for _, _, opt in entries)
+    if has_option:
+        cell = ws.cell(row=row, column=1, value="★：インターホン受話器・カメラ付きのお部屋です")
+        cell.fill = ORANGE
+        cell.font = Font(bold=True)
+        row += 1
 
     # 工期外希望
     row += 1
