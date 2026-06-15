@@ -31,15 +31,12 @@ def option_marker(remark):
     """備考からインターホン受話器・カメラ付きオプションの表示を作る。"""
     if not remark:
         return None
-    has_camera = "カメラ" in remark
-    has_handset = "受話器" in remark
-    if has_camera and has_handset:
-        return "★カメラ付・受話器"
-    if has_camera:
-        return "★カメラ付"
-    if has_handset:
-        return "★受話器"
-    return None
+    suffix = ""
+    if "カメラ" in remark:
+        suffix += "A"
+    if "受話器" in remark:
+        suffix += "B"
+    return suffix or None
 
 
 def format_room(room):
@@ -195,13 +192,12 @@ def main():
                 cell = ws.cell(row=row + sub, column=col)
                 if sub < len(entries):
                     room, minute, option = entries[sub]
-                    value = f"{h}:{minute:02d}\n{room}"
                     if option:
-                        value += f"\n{option}"
+                        cell.value = f"{h}:{minute:02d}\n{room}{option}"
                         cell.fill = ORANGE
                     else:
+                        cell.value = f"{h}:{minute:02d}\n{room}"
                         cell.fill = YELLOW
-                    cell.value = value
                     cell.font = Font(bold=True)
                 cell.alignment = CENTER
 
@@ -222,7 +218,7 @@ def main():
     has_option = any(opt for d in dates.values() for entries in d["slots"].values()
                       for _, _, opt in entries)
     if has_option:
-        cell = ws.cell(row=row, column=1, value="★：インターホン受話器・カメラ付きのお部屋です")
+        cell = ws.cell(row=row, column=1, value="A：カメラ付き　B：受話器付きのお部屋です")
         cell.fill = ORANGE
         cell.font = Font(bold=True)
         row += 1
