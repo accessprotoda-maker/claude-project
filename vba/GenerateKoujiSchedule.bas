@@ -378,6 +378,7 @@ Sub GenerateKoujiSchedule()
     Dim entries3() As Variant, nEntries3 As Long
     Dim eRoom3 As String, eMin3 As Long, eOpt3 As String
     Dim c3 As Range
+    Dim k As Long, sub_ As Long
 
     If nKeys > 0 Then
         Dim firstMon As Long, firstDay As Long, firstWd As String
@@ -626,14 +627,12 @@ CaInputDone:
             If slotData.Exists(skey2) Then
                 nEntries = slotData(skey2).Count
                 ReDim entries(0 To nEntries - 1)
-                Dim k As Long
                 For k = 1 To nEntries
                     entries(k - 1) = slotData(skey2)(k)
                 Next k
                 SortEntriesByMinute entries, nEntries
             End If
 
-            Dim sub_ As Long
             For sub_ = 0 To nRows - 1
                 Dim c As Range
                 Set c = sht.Cells(row + sub_, col)
