@@ -93,6 +93,29 @@ Private Function FormatRoom(ByVal v As Variant) As String
     FormatRoom = Trim(CStr(v))
 End Function
 
+' Parses "M/D H:MM" (or "M/D HH:MM") into array(month, day, hour, minute).
+Private Function ParseDateTimeInput(ByVal s As String) As Variant
+    Dim parts() As String
+    parts = Split(Trim(s), " ")
+
+    Dim dateParts() As String
+    dateParts = Split(parts(0), "/")
+
+    Dim timeParts() As String
+    If UBound(parts) >= 1 And Trim(parts(1)) <> "" Then
+        timeParts = Split(parts(1), ":")
+    Else
+        timeParts = Split("9:00", ":")
+    End If
+
+    Dim res(3) As Variant
+    res(0) = CInt(dateParts(0))
+    res(1) = CInt(dateParts(1))
+    res(2) = CInt(timeParts(0))
+    res(3) = CInt(timeParts(1))
+    ParseDateTimeInput = res
+End Function
+
 ' Sorts an array of (room, minute, option) entries ascending by minute.
 Private Sub SortEntriesByMinute(ByRef entries() As Variant, ByVal n As Long)
     Dim i As Long, j As Long
@@ -307,15 +330,19 @@ Sub GenerateKoujiSchedule()
         Next a
     End If
 
-    ' Add the common-area construction day before the first unit day
+    ' Add the common-area construction day(s) before the first unit day.
+    ' The period (start/end date+time) is entered by the user, so it can
+    ' span multiple days and/or end at a specific time (e.g. 15:00) on the
+    ' last day.
+    Dim wds As Variant
+    wds = Weekdays()
+
     If nKeys > 0 Then
         Dim firstMon As Long, firstDay As Long, firstWd As String
         firstMon = sortedKeys(0) \ 100
         firstDay = sortedKeys(0) Mod 100
         firstWd = dateKeys(sortedKeys(0))
 
-        Dim wds As Variant
-        wds = Weekdays()
         Dim wdIdx As Long, prevWdIdx As Long
         wdIdx = 0
         For a = 0 To 6
@@ -323,40 +350,100 @@ Sub GenerateKoujiSchedule()
         Next a
         prevWdIdx = (wdIdx - 1 + 7) Mod 7
 
-        Dim caDate As Date
-        caDate = DateSerial(2001, firstMon, firstDay) - 1
+        Dim defCaDate As Date
+        defCaDate = DateSerial(2001, firstMon, firstDay) - 1
 
-        With sht.Range(sht.Cells(row, 1), sht.Cells(row, 1))
-            .Merge
-            .Value = Month(caDate) & FwMonth() & Day(caDate) & FwDay() & ChrW(&HFF08) & wds(prevWdIdx) & ChrW(&HFF09)
-            .Font.Bold = True
-            .HorizontalAlignment = xlCenter
-            .VerticalAlignment = xlCenter
-        End With
+        Dim promptStart As String, promptEnd As String, titleCa As String
+        titleCa = ChrW(&H5171) & ChrW(&H7528) & ChrW(&H90E8) & ChrW(&H5DE5) & ChrW(&H4E8B)
+        promptStart = titleCa & ChrW(&H306E) & ChrW(&H958B) & ChrW(&H59CB) & ChrW(&H65E5) & _
+                      ChrW(&H6642) & " (M/D H:MM)"
+        promptEnd = titleCa & ChrW(&H306E) & ChrW(&H7D42) & ChrW(&H4E86) & ChrW(&H65E5) & _
+                    ChrW(&H6642) & " (M/D H:MM)"
 
-        With sht.Range(sht.Cells(row, 2), sht.Cells(row, TOTAL_COLS))
-            .Merge
-            .Value = ChrW(&H5171) & ChrW(&H3000) & ChrW(&H7528) & ChrW(&H3000) & ChrW(&H90E8) & _
-                     ChrW(&H3000) & ChrW(&H5DE5) & ChrW(&H3000) & ChrW(&H4E8B) & Chr(10) & _
-                     ChrW(&HFF08) & ChrW(&H304A) & ChrW(&H90E8) & ChrW(&H5C4B) & ChrW(&H306E) & _
-                     ChrW(&H5DE5) & ChrW(&H7A0B) & ChrW(&H306F) & ChrW(&H51FA) & ChrW(&H6765) & _
-                     ChrW(&H307E) & ChrW(&H305B) & ChrW(&H3093) & ChrW(&HFF09)
-            .Font.Bold = True
-            .Font.Size = 12
-            .HorizontalAlignment = xlCenter
-            .VerticalAlignment = xlCenter
-            .WrapText = True
-            .Interior.Color = GRAY
-        End With
+        Dim startInput As String, endInput As String
+        startInput = InputBox(promptStart, titleCa, Month(defCaDate) & "/" & Day(defCaDate) & " 9:00")
+        If Trim(startInput) = "" Then
+            outWB.Close SaveChanges:=False
+            Exit Sub
+        End If
 
-        With sht.Range(sht.Cells(row, 1), sht.Cells(row, TOTAL_COLS))
-            .Borders.LineStyle = xlContinuous
-            .Borders.Weight = xlThin
-            .Interior.Color = GRAY
-        End With
-        sht.Rows(row).RowHeight = 40
-        row = row + 1
+        endInput = InputBox(promptEnd, titleCa, Month(defCaDate) & "/" & Day(defCaDate) & " 18:00")
+        If Trim(endInput) = "" Then
+            outWB.Close SaveChanges:=False
+            Exit Sub
+        End If
+
+        Dim startParts As Variant, endParts As Variant
+        On Error GoTo CaInputError
+        startParts = ParseDateTimeInput(startInput)
+        endParts = ParseDateTimeInput(endInput)
+        On Error GoTo 0
+
+        Dim caStartDate As Date, caEndDate As Date
+        Dim caStartTime As String, caEndTime As String
+        caStartDate = DateSerial(2001, startParts(0), startParts(1))
+        caStartTime = Format(startParts(2), "0") & ":" & Format(startParts(3), "00")
+        caEndDate = DateSerial(2001, endParts(0), endParts(1))
+        caEndTime = Format(endParts(2), "0") & ":" & Format(endParts(3), "00")
+
+        Dim caDay As Date
+        For caDay = caStartDate To caEndDate Step 1
+            Dim dayWdIdx As Long
+            dayWdIdx = Weekday(caDay, vbMonday) - 1  ' 0=Mon .. 6=Sun
+
+            Dim dStart As String, dEnd As String
+            If caDay = caStartDate Then dStart = caStartTime Else dStart = "9:00"
+            If caDay = caEndDate Then dEnd = caEndTime Else dEnd = "18:00"
+
+            With sht.Range(sht.Cells(row, 1), sht.Cells(row, 1))
+                .Merge
+                .Value = Month(caDay) & FwMonth() & Day(caDay) & FwDay() & ChrW(&HFF08) & wds(dayWdIdx) & ChrW(&HFF09)
+                .Font.Bold = True
+                .HorizontalAlignment = xlCenter
+                .VerticalAlignment = xlCenter
+            End With
+
+            Dim caLabel As String
+            caLabel = ChrW(&H5171) & ChrW(&H3000) & ChrW(&H7528) & ChrW(&H3000) & ChrW(&H90E8) & _
+                      ChrW(&H3000) & ChrW(&H5DE5) & ChrW(&H3000) & ChrW(&H4E8B)
+            If dStart <> "9:00" Or dEnd <> "18:00" Then
+                caLabel = caLabel & ChrW(&HFF08) & dStart & ChrW(&H301C) & dEnd & ChrW(&HFF09)
+            End If
+            caLabel = caLabel & Chr(10) & _
+                      ChrW(&HFF08) & ChrW(&H304A) & ChrW(&H90E8) & ChrW(&H5C4B) & ChrW(&H306E) & _
+                      ChrW(&H5DE5) & ChrW(&H7A0B) & ChrW(&H306F) & ChrW(&H51FA) & ChrW(&H6765) & _
+                      ChrW(&H307E) & ChrW(&H305B) & ChrW(&H3093) & ChrW(&HFF09)
+
+            With sht.Range(sht.Cells(row, 2), sht.Cells(row, TOTAL_COLS))
+                .Merge
+                .Value = caLabel
+                .Font.Bold = True
+                .Font.Size = 12
+                .HorizontalAlignment = xlCenter
+                .VerticalAlignment = xlCenter
+                .WrapText = True
+                .Interior.Color = GRAY
+            End With
+
+            With sht.Range(sht.Cells(row, 1), sht.Cells(row, TOTAL_COLS))
+                .Borders.LineStyle = xlContinuous
+                .Borders.Weight = xlThin
+                .Interior.Color = GRAY
+            End With
+            sht.Rows(row).RowHeight = 40
+            row = row + 1
+        Next caDay
     End If
+    GoTo CaInputDone
+
+CaInputError:
+    MsgBox ChrW(&H5165) & ChrW(&H529B) & ChrW(&H5F62) & ChrW(&H5F0F) & ChrW(&H304C) & _
+           ChrW(&H6B63) & ChrW(&H3057) & ChrW(&H304F) & ChrW(&H3042) & ChrW(&H308A) & _
+           ChrW(&H307E) & ChrW(&H305B) & ChrW(&H3093) & ChrW(&H3002) & " (M/D H:MM)" & vbCrLf & _
+           ChrW(&H4F8B) & ChrW(&HFF1A) & "6/17 9:00"
+    outWB.Close SaveChanges:=False
+    Exit Sub
+CaInputDone:
 
     ' One block of rows per date
     For a = 0 To nKeys - 1
