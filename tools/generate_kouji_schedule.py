@@ -23,8 +23,19 @@ THIN = Side(style="thin", color="000000")
 BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 YELLOW = PatternFill("solid", fgColor="FFFF00")
 ORANGE = PatternFill("solid", fgColor="FFC000")
+GRAY = PatternFill("solid", fgColor="D9D9D9")
 CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
 LEFT = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"]
+
+
+def common_area_date(month, day, weekday):
+    """住戸内工事の初日の前日（共用部工事日）を求める。"""
+    import datetime
+    d = datetime.date(2001, month, day) - datetime.timedelta(days=1)
+    prev_weekday = WEEKDAYS[(WEEKDAYS.index(weekday) - 1) % 7]
+    return d.month, d.day, prev_weekday
 
 
 def option_marker(remark):
@@ -173,6 +184,29 @@ def main():
 
     # データ行
     row = header_row2 + 1
+
+    # 初日の前日を共用部工事日として追加
+    if dates:
+        (first_month, first_day), first_info = sorted(dates.items())[0]
+        ca_month, ca_day, ca_weekday = common_area_date(first_month, first_day, first_info["weekday"])
+
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=1)
+        date_cell = ws.cell(row=row, column=1, value=f"{ca_month}月{ca_day}日（{ca_weekday}）")
+        date_cell.font = Font(bold=True)
+        date_cell.alignment = CENTER
+
+        ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=TOTAL_COLS)
+        ca_cell = ws.cell(row=row, column=2, value="共　用　部　工　事\n（お部屋の工事は出来ません）")
+        ca_cell.font = Font(bold=True, size=12)
+        ca_cell.alignment = CENTER
+        ca_cell.fill = GRAY
+
+        for c in range(1, TOTAL_COLS + 1):
+            ws.cell(row=row, column=c).border = BORDER
+            ws.cell(row=row, column=c).fill = GRAY
+        ws.row_dimensions[row].height = 40
+        row += 1
+
     for (month, day), info in sorted(dates.items()):
         slots = info["slots"]
         weekday = info["weekday"]
