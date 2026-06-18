@@ -1,11 +1,11 @@
 Attribute VB_Name = "Module1"
 '===========================================
-' å†™çœŸè²¼ä»˜ãƒã‚¯ãƒ­
-' é¸æŠã—ãŸã‚»ãƒ«ï¼ˆçµåˆã‚»ãƒ«ï¼‰ã«å†™çœŸã‚’è²¼ã‚Šä»˜ã‘ã€
-' ã‚»ãƒ«ã‚µã‚¤ã‚ºã«åˆã‚ã›ã¦è‡ªå‹•ãƒªã‚µã‚¤ã‚ºã—ã¾ã™
+' Ê^“\•tƒ}ƒNƒ
+' ‘I‘ğ‚µ‚½ƒZƒ‹iŒ‹‡ƒZƒ‹j‚ÉÊ^‚ğ“\‚è•t‚¯A
+' ƒZƒ‹ƒTƒCƒY‚É‡‚í‚¹‚Ä©“®ƒŠƒTƒCƒY‚µ‚Ü‚·
 '===========================================
 
-Sub å†™çœŸè²¼ä»˜()
+Sub Ê^“\•t()
     Dim filePath As String
     Dim pic As Shape
     Dim targetCell As Range
@@ -18,8 +18,8 @@ Sub å†™çœŸè²¼ä»˜()
     Set targetCell = Selection.MergeArea
 
     filePath = Application.GetOpenFilename( _
-        FileFilter:="ç”»åƒãƒ•ã‚¡ã‚¤ãƒ« (*.jpg;*.jpeg;*.png;*.bmp;*.gif),*.jpg;*.jpeg;*.png;*.bmp;*.gif", _
-        Title:="è²¼ã‚Šä»˜ã‘ã‚‹å†™çœŸã‚’é¸æŠã—ã¦ãã ã•ã„")
+        FileFilter:="‰æ‘œƒtƒ@ƒCƒ‹ (*.jpg;*.jpeg;*.png;*.bmp;*.gif),*.jpg;*.jpeg;*.png;*.bmp;*.gif", _
+        Title:="“\‚è•t‚¯‚éÊ^‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢")
 
     If filePath = "False" Then Exit Sub
 
@@ -69,7 +69,7 @@ Sub å†™çœŸè²¼ä»˜()
     targetCell.Value = ""
 End Sub
 
-Sub å…¨å†™çœŸå‰Šé™¤()
+Sub ‘SÊ^íœ()
     Dim shp As Shape
     Dim count As Long
     count = 0
@@ -79,5 +79,5 @@ Sub å…¨å†™çœŸå‰Šé™¤()
             count = count + 1
         End If
     Next shp
-    MsgBox count & " æšã®å†™çœŸã‚’å‰Šé™¤ã—ã¾ã—ãŸã€‚", vbInformation
+    MsgBox count & " –‡‚ÌÊ^‚ğíœ‚µ‚Ü‚µ‚½B", vbInformation
 End Sub
