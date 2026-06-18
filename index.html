@@ -4,61 +4,175 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TSCアクセス・プロ 支援ポータルサイト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+:root {
+  --primary: #b8860b;
+  --primary-light: #daa520;
+  --primary-bg: #fdf6e3;
+  --accent: #ffc107;
+  --accent-hover: #e6ac00;
+  --danger: #c0392b;
+  --bg: #f5f0e8;
+  --card-bg: #fff;
+  --text: #333;
+  --text-light: #666;
+  --text-muted: #999;
+  --border: #e0d8cc;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
+  --transition: .25s cubic-bezier(.4,0,.2,1);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: "Hiragino Kaku Gothic ProN", "Meiryo", "Noto Sans JP", sans-serif;
-  background: #f5f0e8;
-  color: #333;
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+  background: var(--bg);
+  color: var(--text);
   line-height: 1.8;
+  -webkit-text-size-adjust: 100%;
 }
 
-/* ===== HEADER BAR ===== */
+/* ===== HEADER ===== */
 .top-bar {
-  background: #fff;
-  border-bottom: 1px solid #e0d8cc;
-  padding: .6rem 1.5rem;
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: .6rem 1rem;
   display: flex;
   align-items: center;
   gap: .8rem;
   position: sticky;
   top: 0;
   z-index: 100;
+  height: 56px;
 }
-.top-bar .hamburger {
-  font-size: 1.3rem;
-  color: #555;
+.hamburger {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: var(--text-light);
   cursor: pointer;
-  padding: .2rem .4rem;
+  border-radius: var(--radius);
+  transition: background var(--transition);
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.top-bar .site-name {
+.hamburger:hover { background: var(--primary-bg); }
+.site-logo {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  text-decoration: none;
+  color: var(--text);
+}
+.site-logo .logo-mark {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: .8rem;
+}
+.site-logo .logo-text {
   font-size: .95rem;
   font-weight: 600;
-  color: #333;
-  text-decoration: none;
 }
+.header-spacer { flex: 1; }
+.header-search {
+  display: flex;
+  align-items: center;
+  background: #f5f0e8;
+  border-radius: 20px;
+  padding: .3rem .8rem;
+  gap: .4rem;
+  flex: 1;
+  max-width: 280px;
+}
+.header-search input {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: .85rem;
+  width: 100%;
+  font-family: inherit;
+}
+.header-search .search-icon { color: var(--text-muted); font-size: .9rem; }
+
+/* ===== SEARCH RESULTS DROPDOWN ===== */
+.search-results {
+  display: none;
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  background: var(--card-bg);
+  border-bottom: 2px solid var(--primary-light);
+  box-shadow: var(--shadow-lg);
+  max-height: 70vh;
+  overflow-y: auto;
+  z-index: 150;
+  padding: .5rem 0;
+}
+.search-results.open { display: block; }
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: .7rem 1.2rem;
+  cursor: pointer;
+  transition: background var(--transition);
+  border-bottom: 1px solid #f5f0e8;
+  text-decoration: none;
+  color: var(--text);
+}
+.search-result-item:hover, .search-result-item:focus { background: var(--primary-bg); }
+.search-result-item .sr-icon { font-size: 1.2rem; flex-shrink: 0; }
+.search-result-item .sr-text { flex: 1; }
+.search-result-item .sr-title { font-size: .88rem; font-weight: 600; }
+.search-result-item .sr-path { font-size: .7rem; color: var(--text-muted); }
+.search-result-item .sr-snippet { font-size: .75rem; color: var(--text-light); margin-top: .1rem; }
+.search-result-item .sr-snippet mark { background: #fff3b0; color: var(--text); padding: 0 .1rem; border-radius: 2px; }
+.search-no-result { padding: 1.2rem; text-align: center; font-size: .85rem; color: var(--text-muted); }
 
 /* ===== SIDEBAR ===== */
 .sidebar-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.3);
+  background: rgba(0,0,0,.4);
   z-index: 200;
+  opacity: 0;
+  transition: opacity var(--transition);
 }
-.sidebar-overlay.open { display: block; }
+.sidebar-overlay.open { display: block; opacity: 1; }
 .sidebar {
   position: fixed;
   top: 0;
-  left: -280px;
-  width: 280px;
+  left: -300px;
+  width: 300px;
+  max-width: 85vw;
   height: 100%;
-  background: #fff;
+  background: var(--card-bg);
   z-index: 201;
-  transition: left .3s ease;
+  transition: left .3s cubic-bezier(.4,0,.2,1);
   overflow-y: auto;
-  box-shadow: 2px 0 8px rgba(0,0,0,.1);
+  box-shadow: 4px 0 16px rgba(0,0,0,.15);
 }
 .sidebar.open { left: 0; }
 .sidebar-header {
@@ -72,365 +186,655 @@ body {
 }
 .sidebar-close {
   cursor: pointer;
-  font-size: 1.2rem;
-  color: #999;
+  font-size: 1.5rem;
+  color: var(--text-muted);
   background: none;
   border: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  transition: background var(--transition);
 }
+.sidebar-close:hover { background: #f5f5f5; }
+.sidebar nav { padding: .4rem 0; }
 .sidebar nav a {
-  display: block;
-  padding: .7rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .65rem 1.2rem;
   text-decoration: none;
-  color: #333;
-  font-size: .9rem;
-  border-bottom: 1px solid #f5f5f5;
-  transition: background .15s;
+  color: var(--text);
+  font-size: .88rem;
+  font-weight: 400;
+  transition: all var(--transition);
+  border-left: 3px solid transparent;
 }
-.sidebar nav a:hover, .sidebar nav a.active {
-  background: #fdf6e3;
-  color: #b8860b;
+.sidebar nav a:hover {
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-left-color: var(--primary-light);
+}
+.sidebar nav a.active {
+  background: var(--primary-bg);
+  color: var(--primary);
   font-weight: 600;
+  border-left-color: var(--primary);
 }
-.sidebar nav a.indent {
-  padding-left: 2.4rem;
-  font-size: .85rem;
-  color: #666;
+.sidebar nav a .nav-icon { font-size: 1.1rem; width: 1.4rem; text-align: center; }
+.sidebar nav a.indent { padding-left: 3rem; font-size: .82rem; }
+.sidebar nav .nav-divider {
+  height: 1px;
+  background: #eee;
+  margin: .5rem 1rem;
 }
 
 /* ===== PAGE CONTAINER ===== */
 .page-container {
-  max-width: 960px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 1.5rem 1rem 4rem;
 }
 
 /* ===== HERO ===== */
 .hero-section {
   text-align: center;
-  padding: 2.5rem 1rem 2rem;
+  padding: 2.5rem 1rem 1.5rem;
 }
-.hero-section h1 {
-  font-size: clamp(1.4rem, 3.5vw, 2rem);
-  font-weight: 700;
-  color: #333;
+.hero-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 600;
+  padding: .25rem .8rem;
+  border-radius: 20px;
+  letter-spacing: .05em;
   margin-bottom: .8rem;
 }
-.hero-section h1 span {
-  color: #b8860b;
+.hero-section h1 {
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: .6rem;
+  line-height: 1.4;
 }
-.hero-section p {
-  font-size: .92rem;
-  color: #555;
-  max-width: 600px;
+.hero-section h1 .brand { color: var(--primary); }
+.hero-desc {
+  font-size: .88rem;
+  color: var(--text-light);
+  max-width: 540px;
   margin: 0 auto;
   line-height: 1.9;
 }
 
-/* ===== CATEGORY BUTTONS ===== */
-.category-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: .6rem;
-  margin: 2rem 0 2.5rem;
-}
-.cat-btn {
-  display: inline-block;
-  padding: .55rem 1.8rem;
-  border: 2px solid #daa520;
-  border-radius: 4px;
-  background: #fff;
-  color: #333;
-  font-size: .9rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all .2s;
-}
-.cat-btn:hover, .cat-btn.active {
-  background: #ffc107;
-  border-color: #ffc107;
-  color: #333;
-}
-
-/* ===== YELLOW BANNER BUTTON ===== */
-.yellow-banner {
-  display: block;
-  width: 100%;
-  padding: .7rem 1.5rem;
-  background: #ffc107;
-  color: #333;
-  text-align: center;
-  font-size: .95rem;
-  font-weight: 600;
-  text-decoration: none;
-  border: none;
-  margin-bottom: .4rem;
-  transition: background .2s;
-  cursor: pointer;
-}
-.yellow-banner:hover {
-  background: #e6ac00;
-}
-.yellow-banner-outline {
-  display: block;
-  width: 100%;
-  padding: .55rem 1.5rem;
-  background: #fff;
-  color: #333;
-  text-align: center;
-  font-size: .9rem;
-  font-weight: 600;
-  text-decoration: none;
-  border: 2px solid #daa520;
-  margin-bottom: .6rem;
-  transition: all .2s;
-  cursor: pointer;
-}
-.yellow-banner-outline:hover {
-  background: #fdf6e3;
-}
-
-/* ===== CONTENT SECTIONS ===== */
-.content-section {
-  background: #fff;
-  border: 1px solid #e0d8cc;
-  margin-bottom: 1.5rem;
-  padding: 0;
-}
-.content-section .section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  text-align: center;
-  padding: 1.5rem 1rem 1rem;
-  color: #333;
-}
-.content-section .section-subtitle {
-  font-size: 1.2rem;
-  font-weight: 700;
-  text-align: center;
-  padding: .5rem 1rem 1rem;
-  color: #333;
-}
-.section-body {
-  padding: 1rem 1.5rem 1.5rem;
-}
-.section-body p {
-  font-size: .9rem;
-  margin-bottom: .8rem;
-  color: #444;
-}
-
-/* ===== INFO BOX (beige bg) ===== */
-.info-box {
-  background: #fdf6e3;
-  border-left: 4px solid #daa520;
-  padding: .8rem 1.2rem;
-  margin: 1rem 0;
-  font-size: .88rem;
-  color: #555;
-}
-
-/* ===== CARD GRID (product cards) ===== */
-.card-grid {
+/* ===== QUICK STATS ===== */
+.quick-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .8rem;
+  margin: 1.5rem 0 2rem;
 }
-.product-card {
-  background: #fff;
-  border: 1px solid #e0d8cc;
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem .8rem;
+  text-align: center;
+  transition: all var(--transition);
+}
+.stat-card:hover { box-shadow: var(--shadow-md); }
+.stat-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2;
+}
+.stat-label {
+  font-size: .72rem;
+  color: var(--text-muted);
+  margin-top: .2rem;
+}
+
+/* ===== CATEGORY NAV GRID ===== */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: .8rem;
+  margin: 1.5rem 0 2rem;
+}
+.cat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.2rem .8rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
   text-decoration: none;
-  color: #333;
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-card:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.cat-card:active { transform: translateY(0); }
+.cat-card .cat-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: .4rem;
+}
+.cat-card .cat-name {
+  font-size: .82rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.cat-card .cat-count {
+  font-size: .68rem;
+  color: var(--text-muted);
+  margin-top: .15rem;
+}
+
+/* ===== SECTION HEADER ===== */
+.section-header {
   display: flex;
-  flex-direction: column;
-  transition: all .2s;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: 1rem;
+}
+.section-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.section-header .section-icon {
+  font-size: 1.2rem;
+}
+
+/* ===== CONTENT CARD ===== */
+.content-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.2rem;
   overflow: hidden;
+  transition: box-shadow var(--transition);
 }
-.product-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,.1);
-  border-color: #daa520;
+.content-card:hover { box-shadow: var(--shadow-sm); }
+.card-header {
+  padding: 1.2rem 1.2rem .8rem;
+  display: flex;
+  align-items: flex-start;
+  gap: .8rem;
 }
-.product-card .card-img {
-  height: 140px;
-  background: #f0ebe0;
+.card-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--primary-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3rem;
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
-.product-card .card-info {
-  padding: 1rem;
-  text-align: center;
-}
-.product-card .card-info h3 {
-  font-size: 1.1rem;
+.card-header-text h3 {
+  font-size: 1.05rem;
   font-weight: 700;
-  margin-bottom: .3rem;
+  color: var(--text);
+  line-height: 1.3;
 }
-.product-card .card-info .card-sub {
-  font-size: .78rem;
-  color: #888;
+.card-header-text .card-meta {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-top: .15rem;
+}
+.card-body {
+  padding: 0 1.2rem 1.2rem;
+}
+.card-body p {
+  font-size: .88rem;
+  color: #555;
+  margin-bottom: .6rem;
 }
 
-/* ===== KNOWLEDGE ARTICLE ===== */
+/* ===== ACTION BUTTONS ===== */
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  padding: .75rem 1.2rem;
+  border-radius: var(--radius);
+  font-size: .9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: none;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.action-btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(255,193,7,.3);
+}
+.action-btn-primary:hover {
+  box-shadow: 0 4px 16px rgba(255,193,7,.4);
+  transform: translateY(-1px);
+}
+.action-btn-outline {
+  background: var(--card-bg);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+.action-btn-outline:hover {
+  border-color: var(--primary-light);
+  background: var(--primary-bg);
+}
+.action-btn + .action-btn { margin-top: .5rem; }
+
+/* ===== INFO BOX ===== */
+.info-box {
+  background: var(--primary-bg);
+  border-left: 4px solid var(--primary-light);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: .8rem 1rem;
+  margin: .8rem 0;
+  font-size: .85rem;
+  color: #555;
+  line-height: 1.8;
+}
+.info-box.warning {
+  background: #fff3e0;
+  border-left-color: #ff9800;
+}
+.info-box.danger {
+  background: #fde8e8;
+  border-left-color: var(--danger);
+}
+
+/* ===== PRODUCT CARDS ===== */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.product-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition);
+  text-decoration: none;
+  color: var(--text);
+}
+.product-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-light);
+  transform: translateY(-3px);
+}
+.product-card .card-img {
+  height: 120px;
+  background: linear-gradient(135deg, #f5f0e8, #ede5d8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+.product-card .card-info {
+  padding: .8rem 1rem;
+}
+.product-card .card-info h3 {
+  font-size: .95rem;
+  font-weight: 700;
+  margin-bottom: .15rem;
+}
+.product-card .card-info .card-sub {
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+.product-card .card-badge {
+  display: inline-block;
+  background: var(--primary-bg);
+  color: var(--primary);
+  font-size: .65rem;
+  font-weight: 600;
+  padding: .15rem .5rem;
+  border-radius: 10px;
+  margin-top: .3rem;
+}
+
+/* ===== ARTICLE ===== */
 .article-section {
-  background: #fff;
-  border: 1px solid #e0d8cc;
-  margin-bottom: 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.2rem;
+  overflow: hidden;
 }
 .article-header {
-  padding: 1.5rem 1.5rem 1rem;
+  padding: 1.2rem 1.2rem .8rem;
   border-bottom: 1px solid #eee;
 }
 .article-header h2 {
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text);
 }
 .article-header .article-meta {
-  font-size: .8rem;
-  color: #999;
-  margin-top: .3rem;
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-top: .2rem;
 }
 .article-body {
-  padding: 1.5rem;
+  padding: 1.2rem;
 }
 .article-body h3 {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text);
   margin: 1.2rem 0 .5rem;
   padding-bottom: .3rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 2px solid var(--primary-bg);
 }
 .article-body h4 {
-  font-size: .95rem;
-  font-weight: 700;
+  font-size: .9rem;
+  font-weight: 600;
   color: #444;
   margin: .8rem 0 .3rem;
 }
 .article-body p, .article-body li {
-  font-size: .88rem;
-  color: #444;
+  font-size: .85rem;
+  color: #555;
   line-height: 1.9;
 }
 .article-body ul, .article-body ol {
   padding-left: 1.4rem;
-  margin: .4rem 0 .8rem;
+  margin: .3rem 0 .6rem;
 }
-.article-body li {
-  margin-bottom: .2rem;
-}
+.article-body li { margin-bottom: .15rem; }
 .article-body .highlight {
-  color: #c0392b;
+  color: var(--danger);
   font-weight: 600;
 }
 
 /* ===== TABLE ===== */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: .8rem 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: .85rem;
-  margin: .8rem 0;
+  font-size: .82rem;
+  min-width: 400px;
 }
 .data-table th {
-  background: #f5f0e8;
-  padding: .5rem .7rem;
+  background: var(--primary-bg);
+  padding: .55rem .7rem;
   text-align: left;
   font-weight: 600;
-  border: 1px solid #e0d8cc;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
 }
 .data-table td {
   padding: .5rem .7rem;
-  border: 1px solid #e0d8cc;
+  border-bottom: 1px solid #f0ebe0;
 }
-.data-table tr:hover td {
-  background: #fdf6e3;
-}
+.data-table tr:hover td { background: #fdf9f0; }
 
 /* ===== CHECKLIST ===== */
+.checklist { list-style: none; padding-left: 0; }
 .checklist li {
-  list-style: none;
   position: relative;
-  padding-left: 1.4rem;
-  margin-bottom: .4rem;
+  padding: .35rem 0 .35rem 1.6rem;
+  font-size: .85rem;
+  border-bottom: 1px solid #f5f0e8;
 }
 .checklist li::before {
-  content: "■";
+  content: "";
   position: absolute;
   left: 0;
-  color: #333;
-  font-size: .7rem;
-  top: .2rem;
+  top: .55rem;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  background: var(--card-bg);
 }
 
-/* ===== TABS (page navigation) ===== */
-.page-tabs {
+/* ===== BREADCRUMB ===== */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-bottom: .8rem;
+  flex-wrap: wrap;
+}
+.breadcrumb a {
+  color: var(--primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb .sep { color: #ccc; }
+
+/* ===== ANNOUNCEMENTS ===== */
+.announce-list { margin: .5rem 0; }
+.announce-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .8rem;
+  padding: .7rem 0;
+  border-bottom: 1px solid #f0ebe0;
+}
+.announce-date {
+  font-size: .72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  min-width: 5rem;
+  padding-top: .1rem;
+}
+.announce-tag {
+  font-size: .65rem;
+  font-weight: 600;
+  padding: .1rem .5rem;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.announce-tag.new { background: #e8f5e9; color: #2e7d32; }
+.announce-tag.update { background: #e3f2fd; color: #1565c0; }
+.announce-tag.important { background: #fce4ec; color: #c62828; }
+.announce-text {
+  font-size: .82rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* ===== CALENDAR PLACEHOLDER ===== */
+.calendar-placeholder {
+  background: linear-gradient(135deg, #f5f0e8, #ede5d8);
+  border-radius: var(--radius);
+  padding: 2rem 1rem;
+  text-align: center;
+  margin-top: .8rem;
+}
+.calendar-placeholder .cal-icon { font-size: 2rem; margin-bottom: .3rem; }
+.calendar-placeholder p { font-size: .8rem; color: var(--text-muted); }
+
+/* ===== TABS ===== */
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== BACK TO TOP ===== */
+.back-to-top {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 1.2rem;
   display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  border: none;
+  z-index: 90;
+  transition: all var(--transition);
 }
-.tab-content {
-  display: none;
-}
-.tab-content.active {
-  display: block;
-}
+.back-to-top:hover { background: var(--primary-light); transform: translateY(-2px); }
+.back-to-top.visible { display: flex; }
 
 /* ===== FOOTER ===== */
 .site-footer {
   text-align: center;
   padding: 2rem 1rem;
-  font-size: .78rem;
-  color: #999;
-  border-top: 1px solid #e0d8cc;
+  font-size: .75rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  background: var(--card-bg);
 }
+.site-footer .footer-links { margin-bottom: .5rem; }
+.site-footer .footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  margin: 0 .5rem;
+  font-size: .75rem;
+}
+.site-footer .footer-links a:hover { color: var(--primary); }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .page-container { padding: 1rem; }
-  .card-grid { grid-template-columns: 1fr; }
-  .category-buttons { gap: .4rem; }
-  .cat-btn { padding: .45rem 1.2rem; font-size: .82rem; }
+@media (min-width: 640px) {
+  .page-container { padding: 2rem 1.5rem 4rem; }
+  .header-search { max-width: 300px; }
+  .quick-stats { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 639px) {
+  .top-bar { padding: .5rem .6rem; }
+  .hero-section { padding: 1.5rem .5rem 1rem; }
+  .hero-section h1 { font-size: 1.2rem; }
+  .hero-desc { font-size: .82rem; }
+  .quick-stats { grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .stat-card { padding: .7rem .5rem; }
+  .stat-num { font-size: 1.2rem; }
+  .stat-label { font-size: .65rem; }
+  .category-grid { grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .cat-card { padding: .8rem .5rem; border-radius: var(--radius); }
+  .cat-card .cat-icon { font-size: 1.5rem; }
+  .cat-card .cat-name { font-size: .72rem; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: .6rem; }
+  .product-card .card-img { height: 90px; font-size: 2rem; }
+  .product-card .card-info { padding: .6rem .7rem; }
+  .product-card .card-info h3 { font-size: .82rem; }
+  .card-header { padding: 1rem; }
+  .card-body { padding: 0 1rem 1rem; }
+  .article-header { padding: 1rem; }
+  .article-body { padding: 1rem; }
+  .article-body h3 { font-size: .92rem; }
+  .content-card, .article-section { border-radius: var(--radius); }
+  .announce-item { gap: .5rem; flex-wrap: wrap; }
+  .announce-date { min-width: auto; }
+  .section-header h2 { font-size: 1rem; }
+  .table-wrapper { font-size: .78rem; }
+  .back-to-top { bottom: 1rem; right: 1rem; width: 40px; height: 40px; font-size: 1rem; }
+}
+
+@media (max-width: 380px) {
+  .category-grid { grid-template-columns: repeat(2, 1fr); }
+  .product-grid { grid-template-columns: 1fr; }
 }
 
 /* ===== PRINT ===== */
 @media print {
-  .top-bar, .sidebar, .sidebar-overlay, .category-buttons { display: none; }
+  .top-bar, .sidebar, .sidebar-overlay, .back-to-top { display: none !important; }
   body { background: #fff; }
-  .content-section, .article-section { border: 1px solid #ccc; break-inside: avoid; }
+  .content-card, .article-section { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
 }
+
+/* ===== SMOOTH SCROLL ===== */
+html { scroll-behavior: smooth; }
+
+/* ===== FOCUS VISIBLE ===== */
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 </style>
 </head>
 <body>
 
 <!-- ===== TOP BAR ===== -->
 <div class="top-bar">
-  <span class="hamburger" onclick="toggleSidebar()">&#9776;</span>
-  <a href="index.html" class="site-name">TSCAP</a>
+  <button class="hamburger" onclick="toggleSidebar()" aria-label="メニュー">&#9776;</button>
+  <a href="#" class="site-logo" onclick="showTab('home');return false;">
+    <div class="logo-mark">TSC</div>
+    <span class="logo-text">TSCAP ポータル</span>
+  </a>
+  <div class="header-spacer"></div>
+  <div class="header-search">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" placeholder="キーワードで検索..." id="searchInput" oninput="handleSearch()" onkeydown="if(event.key==='Enter')handleSearch(event)" autocomplete="off">
+  </div>
 </div>
 
 <!-- ===== SIDEBAR ===== -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    TSCAP
-    <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+    <span>TSCAP メニュー</span>
+    <button class="sidebar-close" onclick="toggleSidebar()" aria-label="閉じる">&times;</button>
   </div>
   <nav>
-    <a href="#" class="active" onclick="showTab('home')">ホーム</a>
-    <a href="#" onclick="showTab('intercom')">インターホン</a>
-    <a href="#" class="indent" onclick="showTab('intercom-ref')">結線時参考資料</a>
-    <a href="#" class="indent" onclick="showTab('intercom-construction')">施工</a>
-    <a href="#" onclick="showTab('fire-alarm')">自動火災報知設備</a>
-    <a href="#" class="indent" onclick="showTab('fire-equipment')">機器について</a>
-    <a href="#" class="indent" onclick="showTab('fire-survey')">現場調査について</a>
-    <a href="#" class="indent" onclick="showTab('fire-manual')">設置マニュアル</a>
-    <a href="#" onclick="showTab('electric-lock')">電気錠</a>
-    <a href="#" onclick="showTab('lighting')">照明</a>
-    <a href="#" onclick="showTab('catalog')">機器カタログリンク</a>
+    <a href="#" class="active" data-tab="home" onclick="showTab('home')">
+      <span class="nav-icon">&#127968;</span> ホーム
+    </a>
+    <div class="nav-divider"></div>
+    <a href="#" data-tab="intercom" onclick="showTab('intercom')">
+      <span class="nav-icon">&#128222;</span> インターホン
+    </a>
+    <a href="#" class="indent" data-tab="intercom-ref" onclick="showTab('intercom-ref')">結線時参考資料</a>
+    <a href="#" class="indent" data-tab="intercom-construction" onclick="showTab('intercom-construction')">施工</a>
+    <div class="nav-divider"></div>
+    <a href="#" data-tab="fire-alarm" onclick="showTab('fire-alarm')">
+      <span class="nav-icon">&#128293;</span> 自動火災報知設備
+    </a>
+    <a href="#" class="indent" data-tab="fire-equipment" onclick="showTab('fire-equipment')">機器について</a>
+    <a href="#" class="indent" data-tab="fire-survey" onclick="showTab('fire-survey')">現場調査について</a>
+    <a href="#" class="indent" data-tab="fire-manual" onclick="showTab('fire-manual')">設置マニュアル</a>
+    <div class="nav-divider"></div>
+    <a href="#" data-tab="electric-lock" onclick="showTab('electric-lock')">
+      <span class="nav-icon">&#128273;</span> 電気錠
+    </a>
+    <a href="#" data-tab="lighting" onclick="showTab('lighting')">
+      <span class="nav-icon">&#128161;</span> 照明
+    </a>
+    <a href="#" data-tab="catalog" onclick="showTab('catalog')">
+      <span class="nav-icon">&#128218;</span> 機器カタログリンク
+    </a>
   </nav>
 </div>
+
+<!-- ===== SEARCH RESULTS ===== -->
+<div class="search-results" id="searchResults"></div>
 
 <!-- ===== MAIN ===== -->
 <div class="page-container">
@@ -441,26 +845,103 @@ body {
   <div class="tab-content active" id="tab-home">
 
     <div class="hero-section">
-      <h1><span>TSC</span>アクセス・プロ　支援ポータルサイト</h1>
-      <p>TSCアクセスプロのポータルへようこそ。このサイトは、会社に関連する情報を集約し、確認できるようにするために作成しました。</p>
+      <span class="hero-badge">KNOWLEDGE PORTAL</span>
+      <h1><span class="brand">TSC</span>アクセス・プロ<br>支援ポータルサイト</h1>
+      <p class="hero-desc">設備工事に関するナレッジを集約。インターホン・自動火災報知設備・電気錠・照明の技術情報をいつでも確認できます。</p>
     </div>
 
-    <!-- Category Buttons -->
-    <div class="category-buttons">
-      <a class="cat-btn" onclick="showTab('intercom')">インターホン</a>
-      <a class="cat-btn" onclick="showTab('fire-alarm')">自動火災報知設備</a>
-      <a class="cat-btn" onclick="showTab('electric-lock')">電気錠</a>
-      <a class="cat-btn" onclick="showTab('lighting')">照明</a>
-      <a class="cat-btn" onclick="showTab('catalog')">機器カタログリンク</a>
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+      <div class="stat-card">
+        <div class="stat-num">5</div>
+        <div class="stat-label">カテゴリ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">10+</div>
+        <div class="stat-label">技術記事</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">3</div>
+        <div class="stat-label">マニュアル</div>
+      </div>
     </div>
 
-    <!-- Calendar placeholder -->
-    <div class="content-section">
-      <div class="section-body" style="text-align:center;padding:2rem;">
-        <p style="font-size:1rem;font-weight:600;color:#666;">共有カレンダー予定表</p>
-        <p style="font-size:.85rem;color:#999;">（Googleカレンダーの埋め込みエリア）</p>
-        <div style="background:#fdf6e3;border:1px solid #e0d8cc;border-radius:4px;padding:1.5rem;margin-top:1rem;">
-          <p style="font-size:.85rem;color:#888;">このエリアにGoogleカレンダーを埋め込むことができます。<br>Google Sitesから移行する場合は、カレンダーの埋め込みコードをここに貼り付けてください。</p>
+    <!-- Category Grid -->
+    <div class="section-header">
+      <span class="section-icon">&#128204;</span>
+      <h2>カテゴリから探す</h2>
+    </div>
+    <div class="category-grid">
+      <a class="cat-card" onclick="showTab('intercom')">
+        <span class="cat-icon">&#128222;</span>
+        <div class="cat-name">インターホン</div>
+        <div class="cat-count">3記事</div>
+      </a>
+      <a class="cat-card" onclick="showTab('fire-alarm')">
+        <span class="cat-icon">&#128293;</span>
+        <div class="cat-name">自動火災<br>報知設備</div>
+        <div class="cat-count">4記事</div>
+      </a>
+      <a class="cat-card" onclick="showTab('electric-lock')">
+        <span class="cat-icon">&#128273;</span>
+        <div class="cat-name">電気錠</div>
+        <div class="cat-count">準備中</div>
+      </a>
+      <a class="cat-card" onclick="showTab('lighting')">
+        <span class="cat-icon">&#128161;</span>
+        <div class="cat-name">照明</div>
+        <div class="cat-count">準備中</div>
+      </a>
+      <a class="cat-card" onclick="showTab('catalog')">
+        <span class="cat-icon">&#128218;</span>
+        <div class="cat-name">機器カタログ</div>
+        <div class="cat-count">リンク集</div>
+      </a>
+    </div>
+
+    <!-- Announcements -->
+    <div class="content-card" style="margin-top:1.5rem;">
+      <div class="card-header">
+        <div class="card-header-icon">&#128227;</div>
+        <div class="card-header-text">
+          <h3>お知らせ</h3>
+          <div class="card-meta">最新の更新情報</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="announce-list">
+          <div class="announce-item">
+            <span class="announce-date">2026/06/18</span>
+            <span class="announce-tag new">NEW</span>
+            <span class="announce-text">ポータルサイトをリニューアルしました</span>
+          </div>
+          <div class="announce-item">
+            <span class="announce-date">2026/06/17</span>
+            <span class="announce-tag new">NEW</span>
+            <span class="announce-text">インターホン・自火報 設置マニュアルを追加しました</span>
+          </div>
+          <div class="announce-item">
+            <span class="announce-date">2026/06/17</span>
+            <span class="announce-tag update">更新</span>
+            <span class="announce-text">自動火災報知設備の機器情報を更新しました</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-header-icon">&#128197;</div>
+        <div class="card-header-text">
+          <h3>共有カレンダー</h3>
+          <div class="card-meta">チームの予定表</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="calendar-placeholder">
+          <div class="cal-icon">&#128197;</div>
+          <p>Googleカレンダーの埋め込みエリア<br>カレンダーの埋め込みコードをここに設置できます</p>
         </div>
       </div>
     </div>
@@ -471,45 +952,61 @@ body {
   <!-- INTERCOM TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-intercom">
-    <div class="content-section">
-      <div class="section-title">マンションHAシステム</div>
-      <div class="section-subtitle">インターホン</div>
-      <div class="section-body">
-        <p>弊社で提案している基幹商品としてPanasonic社製のマンション用インターホン設備が挙げられます。</p>
-        <p>下記にPanasonic社のインターホンシリーズをまとめてあります。</p>
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <span>インターホン</span>
+    </div>
 
-        <a class="yellow-banner" onclick="showTab('intercom-ref')">結線時参考資料</a>
-        <a class="yellow-banner-outline" onclick="showTab('intercom-construction')">施工</a>
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-header-icon">&#128222;</div>
+        <div class="card-header-text">
+          <h3>マンションHAシステム インターホン</h3>
+          <div class="card-meta">Panasonic マンション用インターホン設備</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>弊社で提案している基幹商品としてPanasonic社製のマンション用インターホン設備が挙げられます。下記にPanasonic社のインターホンシリーズをまとめてあります。</p>
 
-        <div class="info-box">
-          <p style="margin:0;">弊社はパナソニック社の協力会社として実績があります。<br>
-          基本的に案件として受注するものとしてはインターホン/自動火災報知設備が二本柱となっています。<br>
-          主に採用するインターホン機器についてPanasonic社のホームページリンクを貼ってあります。<br>
-          下記リンクから外部サイトに飛ぶようにしてありますので、シリーズ毎の機能についてより詳細な情報が必要でしたらご活用ください。</p>
+        <div style="display:flex;flex-direction:column;gap:.5rem;margin:1rem 0;">
+          <a class="action-btn action-btn-primary" onclick="showTab('intercom-ref')">&#128209; 結線時参考資料</a>
+          <a class="action-btn action-btn-outline" onclick="showTab('intercom-construction')">&#128736; 施工マニュアル</a>
         </div>
 
-        <div class="card-grid">
-          <div class="product-card">
-            <div class="card-img">&#127960;</div>
-            <div class="card-info">
-              <h3>Iシリーズ</h3>
-              <div class="card-sub">クラウシュ/クラウシュsquare</div>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="card-img">&#127961;</div>
-            <div class="card-info">
-              <h3>Dシリーズ</h3>
-              <div class="card-sub">ウィンティア/ウィンティアR/</div>
-            </div>
-          </div>
-          <div class="product-card">
-            <div class="card-img">&#128242;</div>
-            <div class="card-info">
-              <h3>テレビドアホン(単独)</h3>
-              <div class="card-sub">&nbsp;</div>
-            </div>
-          </div>
+        <div class="info-box">
+          <p style="margin:0;">弊社はパナソニック社の協力会社として実績があります。基本的に案件として受注するものとしてはインターホン/自動火災報知設備が二本柱となっています。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <span class="section-icon">&#128187;</span>
+      <h2>シリーズ一覧</h2>
+    </div>
+    <div class="product-grid">
+      <div class="product-card">
+        <div class="card-img">&#127960;</div>
+        <div class="card-info">
+          <h3>Iシリーズ</h3>
+          <div class="card-sub">クラウシュ / クラウシュsquare</div>
+          <span class="card-badge">高機能モデル</span>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="card-img">&#127961;</div>
+        <div class="card-info">
+          <h3>Dシリーズ</h3>
+          <div class="card-sub">ウィンティア / ウィンティアR</div>
+          <span class="card-badge">スタンダード</span>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="card-img">&#128242;</div>
+        <div class="card-info">
+          <h3>テレビドアホン</h3>
+          <div class="card-sub">単独タイプ</div>
+          <span class="card-badge">戸建向け</span>
         </div>
       </div>
     </div>
@@ -519,6 +1016,14 @@ body {
   <!-- INTERCOM REF TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-intercom-ref">
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <a onclick="showTab('intercom')">インターホン</a>
+      <span class="sep">></span>
+      <span>結線時参考資料</span>
+    </div>
+
     <div class="article-section">
       <div class="article-header">
         <h2>インターホン結線時参考資料</h2>
@@ -526,21 +1031,23 @@ body {
       </div>
       <div class="article-body">
         <h3>アイホンの場合</h3>
-        <table class="data-table">
-          <tr><th>項目</th><th>Panasonic/Nationalの場合</th></tr>
-          <tr><td>旧型インターホン機器型番</td><td>パナカラー</td></tr>
-          <tr><td>HA集合盤内インターホンの端子</td><td></td></tr>
-          <tr><td>呼称</td><td>DJ1/DJ2</td></tr>
-          <tr><td>カス</td><td>G+G-</td></tr>
-          <tr><td>電話子機端子</td><td>MA1/MA2/…</td></tr>
-          <tr><td>玄関子機</td><td>FL1/リレー</td></tr>
-          <tr><td>呼称</td><td>針外子機 MJ1/MJ2/…</td></tr>
-          <tr><td>カス</td><td>G+G-</td></tr>
-          <tr><td>配置子機</td><td>DJ/EI/IAL</td></tr>
-          <tr><td>タナ端子名</td><td>A1/A2(A3)</td></tr>
-          <tr><td>機種端子</td><td>BL82 GT/STC</td></tr>
-          <tr><td colspan="2">JL・JC / B・BC / JL・JC</td></tr>
-        </table>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <tr><th>項目</th><th>Panasonic/Nationalの場合</th></tr>
+            <tr><td>旧型インターホン機器型番</td><td>パナカラー</td></tr>
+            <tr><td>HA集合盤内インターホンの端子</td><td></td></tr>
+            <tr><td>呼称</td><td>DJ1/DJ2</td></tr>
+            <tr><td>カス</td><td>G+G-</td></tr>
+            <tr><td>電話子機端子</td><td>MA1/MA2/...</td></tr>
+            <tr><td>玄関子機</td><td>FL1/リレー</td></tr>
+            <tr><td>呼称</td><td>針外子機 MJ1/MJ2/...</td></tr>
+            <tr><td>カス</td><td>G+G-</td></tr>
+            <tr><td>配置子機</td><td>DJ/EI/IAL</td></tr>
+            <tr><td>タナ端子名</td><td>A1/A2(A3)</td></tr>
+            <tr><td>機種端子</td><td>BL82 GT/STC</td></tr>
+            <tr><td colspan="2">JL・JC / B・BC / JL・JC</td></tr>
+          </table>
+        </div>
 
         <h3>Panasonic3線合線の場合</h3>
         <p>旧表記の場合、インターホン端子に記載が無くなっています。これがないと旧表器でのスタンス幹線が引けません。</p>
@@ -552,7 +1059,7 @@ body {
         <h4>施内火災確認</h4>
         <p>短内火災を確認、インターホン端末が火災復旧起動「断」を配された蓄器・2分旧型によるセトリ幹線大幹火元にあれる所の火災報知とします。</p>
 
-        <div class="info-box">
+        <div class="info-box warning">
           <p class="highlight" style="margin:0;">上記はPanasonicを基準としたインターホン設備でパナソニック/またその後始は対応となっています。他社アイホンとは解析が異なり取付していない部品もあります。仕様は一般的にJLとJCに置き直してください。（アスターDのBメトリ）</p>
         </div>
       </div>
@@ -563,14 +1070,28 @@ body {
   <!-- INTERCOM CONSTRUCTION TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-intercom-construction">
-    <div class="article-section">
-      <div class="article-header">
-        <h2>インターホン施工について</h2>
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <a onclick="showTab('intercom')">インターホン</a>
+      <span class="sep">></span>
+      <span>施工</span>
+    </div>
+
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-header-icon">&#128736;</div>
+        <div class="card-header-text">
+          <h3>インターホン施工マニュアル</h3>
+          <div class="card-meta">Panasonic シンプルP-1シリーズ対応</div>
+        </div>
       </div>
-      <div class="article-body">
-        <a href="manual-intercom-fire-alarm.html" class="yellow-banner">&#128214; シンプルP-1シリーズ 設置マニュアルを見る</a>
-        <p style="margin-top:1rem;">インターホンの施工に関する詳細な手順は、上記リンクからマニュアルを参照してください。</p>
-        <p>Panasonic シンプルP-1シリーズの設置手順をステップバイステップで解説しています。</p>
+      <div class="card-body">
+        <p>インターホンの施工に関する詳細な手順をステップバイステップで解説しています。新入社員向けに、専門用語の解説付きで作成しています。</p>
+        <a href="manual-intercom-fire-alarm.html" class="action-btn action-btn-primary" style="margin-top:.8rem;">&#128214; シンプルP-1シリーズ 設置マニュアルを見る</a>
+        <div class="info-box" style="margin-top:1rem;">
+          <p style="margin:0;"><strong>収録内容：</strong>概要 / 事前準備 / 全体フロー / 10ステップの施工手順 / トラブルシューティング / FAQ / 安全注意事項</p>
+        </div>
       </div>
     </div>
   </div>
@@ -579,24 +1100,44 @@ body {
   <!-- FIRE ALARM TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-fire-alarm">
-    <div class="content-section">
-      <div class="section-title">自動火災報知設備</div>
-      <div class="section-body">
-        <p>マンション向けの自動火災報知設備は「共同住宅用」と「住戸用」があり、建物の構造や避難条件に応じて220号・170号の特例基準が適用されます。設計・工事では所轄消防署の確認と消防設備士による施工・点検が必須です。</p>
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <span>自動火災報知設備</span>
+    </div>
 
-        <a class="yellow-banner" onclick="showTab('fire-equipment')">自動火災報知設備の機器について</a>
-        <a class="yellow-banner-outline" onclick="showTab('fire-survey')">自動火災報知設備の現場調査について</a>
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-header-icon">&#128293;</div>
+        <div class="card-header-text">
+          <h3>自動火災報知設備</h3>
+          <div class="card-meta">共同住宅用 / 住戸用の設備概要</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>マンション向けの自動火災報知設備は「共同住宅用」と「住戸用」があり、建物の構造や避難条件に応じて220号・170号の特例基準が適用されます。</p>
 
-        <h3 style="margin-top:1.5rem;">共同住宅用自動火災報知設備</h3>
-        <p>建物全体を集中監視する受信機や共用部の感知器を含む。<br>二方向避難や開放廊下の有無、耐火構造などで設置要件が変わります。</p>
+        <div style="display:flex;flex-direction:column;gap:.5rem;margin:1rem 0;">
+          <a class="action-btn action-btn-primary" onclick="showTab('fire-equipment')">&#128295; 機器について</a>
+          <a class="action-btn action-btn-outline" onclick="showTab('fire-survey')">&#128269; 現場調査について</a>
+          <a class="action-btn action-btn-outline" onclick="showTab('fire-manual')">&#128214; 設置マニュアル</a>
+        </div>
+      </div>
+    </div>
 
-        <h3>住戸用自動火災報知設備</h3>
+    <div class="content-card">
+      <div class="card-body">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:.5rem;">共同住宅用自動火災報知設備</h3>
+        <p>建物全体を集中監視する受信機や共用部の感知器を含む。二方向避難や開放廊下の有無、耐火構造などで設置要件が変わります。</p>
+
+        <h3 style="font-size:1rem;font-weight:700;margin:1rem 0 .5rem;">住戸用自動火災報知設備</h3>
         <p>各住戸内の早期検知に特化。住戸内感知器の自動試験機能など維持管理性が重視される。</p>
 
-        <h3>特例の趣旨について</h3>
+        <h3 style="font-size:1rem;font-weight:700;margin:1rem 0 .5rem;">特例の趣旨について</h3>
         <p>共同住宅は「個人住宅の集合体」として構造要件を満たす場合に、消防用設備の設置範囲や代替措置を認める特例がある。</p>
+
         <div class="info-box">
-          <p style="margin:0;"><strong>対象機能：</strong>自動火災報知設備（共同住宅用/住戸用）、スプリンクラー、消火器などは早期検知・初期消火を重視して原則設置が求められる。</p>
+          <p style="margin:0 0 .3rem;"><strong>対象機能：</strong>自動火災報知設備（共同住宅用/住戸用）、スプリンクラー、消火器などは早期検知・初期消火を重視して原則設置が求められる。</p>
           <p style="margin:0;"><strong>運用の柔軟性：</strong>耐火構造・防火区画・二方向避難や機被廊下の有無に応じて、住戸用設備で代替したり共用部に非常警報を設けるなどの運用が可能。</p>
         </div>
       </div>
@@ -607,91 +1148,88 @@ body {
   <!-- FIRE EQUIPMENT TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-fire-equipment">
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <a onclick="showTab('fire-alarm')">自動火災報知設備</a>
+      <span class="sep">></span>
+      <span>機器について</span>
+    </div>
+
     <div class="article-section">
       <div class="article-header">
         <h2>自動火災報知設備の機器について</h2>
+        <div class="article-meta">感知器・発信機・受信機などの技術詳細</div>
       </div>
       <div class="article-body">
         <h3>P型1級火災受信機</h3>
-        <p><strong>P型1級受信機は共同住宅や複合用途ビル向けの中央制御装置</strong>で、複数回線の感知器を集中監視し、発報時に発報場所表示や音声メッセージで通知します。<br>主なシリーズ「フレキシブルP-1」「シンプルP-1」があります。</p>
+        <p><strong>P型1級受信機は共同住宅や複合用途ビル向けの中央制御装置</strong>で、複数回線の感知器を集中監視し、発報時に発報場所表示や音声メッセージで通知します。主なシリーズ「フレキシブルP-1」「シンプルP-1」があります。</p>
 
         <h3>火災感知器の種類と使い分け</h3>
-        <p>共用部と住戸用の感知器は用途と検知原理で使い分けます。差動（急激な温度上昇検知）、定温（一定温度で作動）、光電（煙検知）それぞれの設置場所・長所短所・点検上の注意点を下に簡潔にまとめます。</p>
+        <p>共用部と住戸用の感知器は用途と検知原理で使い分けます。</p>
 
-        <h4>差動式（温度の急上昇）</h4>
-        <ul>
-          <li>主な設置場所：居室・廊下 / 検知原理：温度の急変を検知する</li>
-          <li>長所：且期の急激加熱に敏感</li>
-          <li>短所：湯気や局所熱で誤発報の可能性あり、設置位置に注意が必要（エアコンの風は直接あたるところを避ける等）</li>
-        </ul>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <tr><th>種類</th><th>検知原理</th><th>設置場所</th><th>長所</th><th>短所</th></tr>
+            <tr><td><strong>差動式</strong></td><td>温度の急変を検知</td><td>居室・廊下</td><td>急激加熱に敏感</td><td>湯気・局所熱で誤発報</td></tr>
+            <tr><td><strong>定温式</strong></td><td>一定温度到達で作動</td><td>キッチン・押し入れ</td><td>誤報に強く高温火災に有効</td><td>反応が遅め</td></tr>
+            <tr><td><strong>光電式</strong></td><td>光散乱で煙を検知</td><td>廊下・階段・居室</td><td>煙を早期に検知</td><td>調理・たばこで誤発報</td></tr>
+          </table>
+        </div>
 
-        <h4>定温式（一定温度で作動）</h4>
-        <ul>
-          <li>検知原理：一定温度到達で作動 / 主な設置場所：キッチン周辺・押し入れ ※キッチンの場合防水型を使用</li>
-          <li>長所：誤報に強く高温火災に有効 / 短所：一定温度で検知する為、反応が遅め</li>
-          <li>基本的にキッチンでは特種60℃防水型/押し入れには1種70℃を使用していることが多い。</li>
-        </ul>
-
-        <h4>光電式（煙を検知）</h4>
-        <ul>
-          <li>検知原理：光散乱で煙を検知 / 主な設置場所：廊下・階段・居室　各階EV前にも設置されていることがあります。</li>
-          <li>長所：煙を早期に検知、広域監視に適正あり</li>
-          <li>短所：調理やたばこで誤発報する場合がある。</li>
-        </ul>
+        <div class="info-box">
+          <p style="margin:0;">キッチンでは特種60℃防水型、押し入れには1種70℃を使用。各階EV前にも光電式が設置されていることがあります。</p>
+        </div>
 
         <h3>発信機・表示灯・ベル（PBL）</h3>
-        <p>発信機・表示灯・ベルは受信機と連動して「発見→通報→一斉通報」を実現する基本機器です。</p>
+        <p>受信機と連動して「発見 → 通報 → 一斉通報」を実現する基本機器です。</p>
 
-        <h4>■ 発信機（手動式発報器）</h4>
+        <h4>発信機（手動式発報器）</h4>
         <ul>
-          <li>機能：人が火災を発見した際に手動で押して通報（身近にある「赤いボタン」）</li>
+          <li>人が火災を発見した際に手動で押して通報（身近にある「赤いボタン」）</li>
           <li>歩行距離50m以内、高さ0.8〜1.5m</li>
-          <li>直近に表示灯があるか</li>
+          <li>直近に表示灯があること</li>
         </ul>
 
-        <h4>■ 表示灯（戸外表示・警示灯）</h4>
+        <h4>表示灯（戸外表示・警示灯）</h4>
         <ul>
-          <li>機能：受信機や発報した場所を確認から適切にさせるように（見える）可視する点滅光、外部から消防活動を誘導し、機器からの発報場所が判り易い</li>
-          <li>外壁・出入口・管理室前</li>
-          <li>夜間視認性・防水性</li>
-          <li>受信機との連動確認</li>
+          <li>外部から消防活動を誘導し、発報場所を可視化する点滅光</li>
+          <li>外壁・出入口・管理室前に設置</li>
+          <li>夜間視認性・防水性を考慮</li>
         </ul>
 
-        <h4>■ ベル（地区音響）</h4>
+        <h4>ベル（地区音響）</h4>
         <ul>
-          <li>機能：鳴動により住人に火災を知らせる発報。赤色で且つ音場の所報を行うもの</li>
+          <li>鳴動により住人に火災を知らせる</li>
           <li>音圧90dB以上</li>
-          <li>死角の有無</li>
-          <li>非常放送との整合性</li>
+          <li>死角の有無・非常放送との整合性を確認</li>
         </ul>
 
         <h3>鳴動方式</h3>
-        <p>原則として、一斉鳴動方式となるが、条件によっては区分鳴動方式なども採用することができる。</p>
+        <p>原則として一斉鳴動方式ですが、条件によっては区分鳴動方式も採用できます。</p>
         <h4>区分鳴動方式（大規模建物向け）</h4>
         <ul>
-          <li>建物収容人数が5,000人を超える場合、又は地上5階建て以上で延面積3,000㎡を超える防火対象物においても不可能です</li>
-          <li>出火階が1階〜出火階とその直上階</li>
-          <li>出火階が1階で鳴動、10分経過した場合は全館で全館に鳴動</li>
-          <li>出火階が2階以上…出火階・その直上階</li>
-          <li>出火階が1階…一階関連と1階と2階</li>
-          <li>出火階が地下階…出火階と直上と1階とその地階</li>
+          <li>建物収容人数5,000人超、又は地上5階建て以上で延面積3,000㎡超の防火対象物</li>
+          <li>出火階が1階 → 出火階とその直上階で鳴動 → 10分経過後に全館鳴動</li>
+          <li>出火階が2階以上 → 出火階・その直上階</li>
+          <li>出火階が地下階 → 出火階と直上階と1階とその地階</li>
         </ul>
 
-        <h3>PBL（受信機との連携観点）</h3>
+        <h3>PBL（受信機との連携）</h3>
         <ul>
-          <li>概念：受信機(R)→ベル(B)→表示灯(L)という流れで、発報時に「どこで」「どのように」知らせるかを決める。</li>
-          <li>連携機能：発報場所からの出力の方向。発光灯、背面灯、鳴動金物、外部通報（電話）・半永続出力</li>
-          <li>設計ポイント：受発機の出力方向、リレー配合、半永電源（バッテリ）等の管理ができるもの。</li>
+          <li>受信機(R) → ベル(B) → 表示灯(L)の流れで「どこで」「どのように」知らせるかを決定</li>
+          <li>連携機能：発光灯、背面灯、鳴動金物、外部通報（電話）</li>
+          <li>設計ポイント：受信機の出力方向、リレー配合、予備電源（バッテリ）等の管理</li>
         </ul>
 
         <h3>GP3級受信機</h3>
-        <p>概要：住戸内の感知設備・発信機・戸外表示器をまとめる宅内の住棟型、盤種個所・同時表示・連続式、住棟対比が可能</p>
+        <p>住戸内の感知設備・発信機・戸外表示器をまとめる宅内の住棟型。</p>
         <h4>主要機能と特徴</h4>
         <ul>
-          <li>警報表示と音声案内：発報時にピット表示と同時に住戸門灯を連動し点灯。</li>
-          <li>通話機能：管理事務室や代管先と通話・防犯灯可能で、広域区警部からの発信表示にも対応。</li>
-          <li>通報或感・故障チェック：自棟受信機→中継器→宅内固定の故障波断を定期的にスイープ巡回し、異常があれば結果を外に通知する仕組みを持つ。</li>
-          <li>停電時の連続：停電でも住宅受信機の中断器と連動し、戸外表示に管理を動かせる設計が可能な設計。</li>
+          <li><strong>警報表示と音声案内：</strong>発報時にピット表示と同時に住戸門灯を連動し点灯</li>
+          <li><strong>通話機能：</strong>管理事務室や代管先と通話可能で、広域区警部からの発信表示にも対応</li>
+          <li><strong>故障チェック：</strong>自棟受信機 → 中継器 → 宅内固定の故障を定期的にスイープ巡回し異常を通知</li>
+          <li><strong>停電時：</strong>住宅受信機の中断器と連動し、戸外表示を維持する設計が可能</li>
         </ul>
       </div>
     </div>
@@ -701,39 +1239,46 @@ body {
   <!-- FIRE SURVEY TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-fire-survey">
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <a onclick="showTab('fire-alarm')">自動火災報知設備</a>
+      <span class="sep">></span>
+      <span>現場調査について</span>
+    </div>
+
     <div class="article-section">
       <div class="article-header">
         <h2>自動火災報知設備の現場調査について</h2>
+        <div class="article-meta">現場調査チェックリスト</div>
       </div>
       <div class="article-body">
         <div class="info-box">
-          <p style="margin:0;">現場調査を実施する際にリストを作成しました、参考にしてください。</p>
+          <p style="margin:0;">現場調査を実施する際のリストです。参考にしてください。</p>
         </div>
 
-        <h3>確認箇所チェックリスト</h3>
-
-        <h4>既設図面の確認</h4>
+        <h3>既設図面の確認</h3>
         <ul class="checklist">
           <li>系統図</li>
           <li>竣工図面(平面図)</li>
           <li>中継位置</li>
         </ul>
 
-        <h4>必要機器の想定</h4>
+        <h3>必要機器の想定</h3>
         <ul class="checklist">
           <li>感知器の種類（差動／定温／光電）</li>
           <li>発信機／表示灯／ベルの有無(若しくはスピーカー)</li>
           <li>GP3級の有無（住戸用）(予備電源装置の可否、あればバッテリ容量確認)</li>
         </ul>
 
-        <h4>現場到着後の全体確認</h4>
+        <h3>現場到着後の全体確認</h3>
         <ul class="checklist">
           <li>建物構成（階数・住戸数・共用部）</li>
           <li>受信機の型番・回線数・予備回線</li>
           <li>バッテリ容量・交換時期・劣化状況</li>
         </ul>
 
-        <h4>中継ボックスの調査（最重要）</h4>
+        <h3>中継ボックスの調査（最重要）</h3>
         <ul class="checklist">
           <li>設置場所（PS／天井裏／共用廊下）</li>
           <li>収まり（既設配線本数・スペース）</li>
@@ -741,14 +1286,14 @@ body {
           <li>系統の把握（縦系統／横系統／増設の必要性）</li>
         </ul>
 
-        <h4>感知器の現況調査（住戸・共用部）</h4>
-        <p><strong>共用部</strong></p>
+        <h3>感知器の現況調査</h3>
+        <h4>共用部</h4>
         <ul class="checklist">
           <li>差動／光電の種類</li>
           <li>設置高さ</li>
           <li>誤報要因（湯気・熱源・換気）</li>
         </ul>
-        <p><strong>住戸内</strong></p>
+        <h4>住戸内</h4>
         <ul class="checklist">
           <li>キッチン：特種60℃防水型</li>
           <li>押し入れ：1種70℃</li>
@@ -756,27 +1301,27 @@ body {
           <li>配線ルート（天井裏／PS）</li>
         </ul>
 
-        <h4>発信機・表示灯・ベル（PBL）の調査</h4>
-        <p><strong>■ 発信機</strong></p>
+        <h3>PBLの調査</h3>
+        <h4>発信機</h4>
         <ul class="checklist">
           <li>歩行距離50m以内</li>
           <li>高さ0.8〜1.5m</li>
           <li>直近に表示灯があるか</li>
         </ul>
-        <p><strong>■ 表示灯</strong></p>
+        <h4>表示灯</h4>
         <ul class="checklist">
           <li>外壁・出入口・管理室前</li>
           <li>夜間視認性・防水性</li>
           <li>受信機との連動確認</li>
         </ul>
-        <p><strong>■ ベル（地区音響）</strong></p>
+        <h4>ベル（地区音響）</h4>
         <ul class="checklist">
           <li>音圧90dB以上</li>
           <li>死角の有無</li>
           <li>非常放送との整合性</li>
         </ul>
 
-        <h4>鳴動方式の確認</h4>
+        <h3>鳴動方式の確認</h3>
         <ul class="checklist">
           <li>一斉鳴動</li>
           <li>区分鳴動（出火階＋直上階など）</li>
@@ -784,7 +1329,7 @@ body {
           <li>遅延設定の有無</li>
         </ul>
 
-        <h4>GP3級受信機（住戸用）の調査</h4>
+        <h3>GP3級受信機（住戸用）の調査</h3>
         <ul class="checklist">
           <li>親機の型番</li>
           <li>戸外表示器との連動</li>
@@ -793,7 +1338,7 @@ body {
           <li>住棟受信機との接続方式</li>
         </ul>
 
-        <h4>施工可能条件の特記（現場で決める）</h4>
+        <h3>施工可能条件の特記</h3>
         <ul class="checklist">
           <li>中継ボックスの収まり</li>
           <li>天井裏の配線取り回し可否</li>
@@ -803,7 +1348,7 @@ body {
           <li>バッテリ問題の有無</li>
         </ul>
 
-        <h4>写真記録（必須）</h4>
+        <h3>写真記録（必須）</h3>
         <ul class="checklist">
           <li>中継ボックス内部</li>
           <li>構設区の全体状態</li>
@@ -813,7 +1358,7 @@ body {
           <li>住戸内の配線ルート</li>
         </ul>
 
-        <h4>事務所でまとめる内容</h4>
+        <h3>事務所でまとめる内容</h3>
         <ul class="checklist">
           <li>系統図（旧／新）</li>
           <li>中継位置一覧</li>
@@ -824,15 +1369,15 @@ body {
           <li>切り替り有線計算元</li>
         </ul>
 
-        <h4>（伝言欄（重要））</h4>
-        <div class="info-box">
+        <h3>伝言欄（重要）</h3>
+        <div class="info-box danger">
           <p style="margin:0;">・定例会合・担当者との事前確認で判明する事象は必要（物理系のため）<br>
           ・出点寄り の発報作図を伝えルはメール にて見える対象表【アイル47KO】【パナソニック9KO】<br>
           ・構設区の発報要注旨はドキ下位基準になる<br>
           ・調査後はぷす下可及とメモする を管理する</p>
         </div>
 
-        <p class="highlight" style="margin-top:1rem;">★重要箇所の把握確認しはプマイナス、とがプラスになっているので注意</p>
+        <p class="highlight" style="margin-top:1rem;">重要箇所の把握確認しはプマイナス、とがプラスになっているので注意</p>
       </div>
     </div>
   </div>
@@ -841,11 +1386,28 @@ body {
   <!-- FIRE MANUAL TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-fire-manual">
-    <div class="content-section">
-      <div class="section-title">設置マニュアル</div>
-      <div class="section-body" style="text-align:center;">
-        <p>Panasonic シンプルP-1シリーズの設置マニュアルです。<br>新入社員向けにステップバイステップで解説しています。</p>
-        <a href="manual-intercom-fire-alarm.html" class="yellow-banner" style="display:inline-block;width:auto;padding:.8rem 3rem;margin-top:1rem;">&#128214; 設置マニュアルを見る</a>
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <a onclick="showTab('fire-alarm')">自動火災報知設備</a>
+      <span class="sep">></span>
+      <span>設置マニュアル</span>
+    </div>
+
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-header-icon">&#128214;</div>
+        <div class="card-header-text">
+          <h3>設置マニュアル</h3>
+          <div class="card-meta">Panasonic シンプルP-1シリーズ</div>
+        </div>
+      </div>
+      <div class="card-body" style="text-align:center;">
+        <p>新入社員向けにステップバイステップで解説しています。</p>
+        <a href="manual-intercom-fire-alarm.html" class="action-btn action-btn-primary" style="display:inline-flex;width:auto;padding:.8rem 2.5rem;margin-top:.5rem;">&#128214; 設置マニュアルを見る</a>
+        <div class="info-box" style="margin-top:1rem;text-align:left;">
+          <p style="margin:0;"><strong>収録内容：</strong>概要 / 事前準備・必要工具 / 全体フロー / 10ステップの施工手順 / 端子接続表 / トラブルシューティング / FAQ / 安全注意事項</p>
+        </div>
       </div>
     </div>
   </div>
@@ -854,9 +1416,21 @@ body {
   <!-- ELECTRIC LOCK TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-electric-lock">
-    <div class="content-section">
-      <div class="section-title">電気錠</div>
-      <div class="section-body">
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <span>電気錠</span>
+    </div>
+
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-header-icon">&#128273;</div>
+        <div class="card-header-text">
+          <h3>電気錠</h3>
+          <div class="card-meta">準備中</div>
+        </div>
+      </div>
+      <div class="card-body">
         <p>電気錠に関するマニュアル・資料は現在準備中です。</p>
         <div class="info-box">
           <p style="margin:0;">コンテンツが追加され次第、こちらに掲載いたします。</p>
@@ -869,9 +1443,21 @@ body {
   <!-- LIGHTING TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-lighting">
-    <div class="content-section">
-      <div class="section-title">照明</div>
-      <div class="section-body">
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <span>照明</span>
+    </div>
+
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-header-icon">&#128161;</div>
+        <div class="card-header-text">
+          <h3>照明</h3>
+          <div class="card-meta">準備中</div>
+        </div>
+      </div>
+      <div class="card-body">
         <p>照明に関するマニュアル・資料は現在準備中です。</p>
         <div class="info-box">
           <p style="margin:0;">コンテンツが追加され次第、こちらに掲載いたします。</p>
@@ -884,12 +1470,24 @@ body {
   <!-- CATALOG TAB -->
   <!-- ============================== -->
   <div class="tab-content" id="tab-catalog">
-    <div class="content-section">
-      <div class="section-title">機器カタログリンク</div>
-      <div class="section-body">
+    <div class="breadcrumb">
+      <a onclick="showTab('home')">ホーム</a>
+      <span class="sep">></span>
+      <span>機器カタログリンク</span>
+    </div>
+
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-header-icon">&#128218;</div>
+        <div class="card-header-text">
+          <h3>機器カタログリンク</h3>
+          <div class="card-meta">各メーカーの機器カタログへのリンク集</div>
+        </div>
+      </div>
+      <div class="card-body">
         <p>各メーカーの機器カタログへのリンク集です。</p>
         <div class="info-box">
-          <p style="margin:0;">コンテンツが追加され次第、こちらに掲載いたします。<br>Google Sitesからの移行時に、各リンクを追加してください。</p>
+          <p style="margin:0;">コンテンツが追加され次第、こちらに掲載いたします。</p>
         </div>
       </div>
     </div>
@@ -897,8 +1495,16 @@ body {
 
 </div>
 
+<!-- ===== BACK TO TOP ===== -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="トップへ戻る">&#9650;</button>
+
 <!-- ===== FOOTER ===== -->
 <footer class="site-footer">
+  <div class="footer-links">
+    <a href="#" onclick="showTab('home');return false;">ホーム</a>
+    <a href="#" onclick="showTab('intercom');return false;">インターホン</a>
+    <a href="#" onclick="showTab('fire-alarm');return false;">自動火災報知設備</a>
+  </div>
   <p>&copy; 2026 TSCアクセス・プロ 支援ポータルサイト</p>
 </footer>
 
@@ -907,22 +1513,142 @@ body {
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('open');
+  document.body.style.overflow = document.getElementById('sidebar').classList.contains('open') ? 'hidden' : '';
 }
 
 function showTab(tabId) {
-  // Hide all tabs
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  // Show target
-  const target = document.getElementById('tab-' + tabId);
+  document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+  var target = document.getElementById('tab-' + tabId);
   if (target) target.classList.add('active');
-  // Update sidebar active
-  document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
-  // Close sidebar on mobile
+
+  document.querySelectorAll('.sidebar nav a').forEach(function(a) {
+    a.classList.toggle('active', a.dataset.tab === tabId);
+  });
+
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
-  // Scroll to top
+  document.body.style.overflow = '';
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (history.pushState) {
+    history.replaceState(null, '', '#' + tabId);
+  }
 }
+
+window.addEventListener('scroll', function() {
+  var btn = document.getElementById('backToTop');
+  btn.classList.toggle('visible', window.scrollY > 400);
+});
+
+window.addEventListener('hashchange', function() {
+  var hash = location.hash.replace('#', '');
+  if (hash && document.getElementById('tab-' + hash)) {
+    showTab(hash);
+  }
+});
+
+window.addEventListener('DOMContentLoaded', function() {
+  var hash = location.hash.replace('#', '');
+  if (hash && document.getElementById('tab-' + hash)) {
+    showTab(hash);
+  }
+});
+
+var searchIndex = [
+  { tab: 'intercom', icon: '&#128222;', title: 'インターホン', path: 'ホーム > インターホン',
+    keywords: 'インターホン intercom パナソニック panasonic ドアホン クラウシュ ウィンティア マンションHAシステム Iシリーズ Dシリーズ テレビドアホン 基幹商品' },
+  { tab: 'intercom-ref', icon: '&#128209;', title: '結線時参考資料', path: 'ホーム > インターホン > 結線時参考資料',
+    keywords: '結線 配線 端子 wiring アイホン パナソニック DJ1 DJ2 MA1 FL1 JL JC VOL減衰 トラブルシューティング 旧型 パナカラー 3線合線' },
+  { tab: 'intercom-construction', icon: '&#128736;', title: 'インターホン施工マニュアル', path: 'ホーム > インターホン > 施工',
+    keywords: '施工 construction マニュアル シンプルP-1 設置 手順 ステップ 新入社員 工具 配線 端子台' },
+  { tab: 'fire-alarm', icon: '&#128293;', title: '自動火災報知設備', path: 'ホーム > 自動火災報知設備',
+    keywords: '火災 自火報 共同住宅 住戸用 特例 220号 170号 消防 耐火構造 防火区画 二方向避難 スプリンクラー' },
+  { tab: 'fire-equipment', icon: '&#128295;', title: '自火報の機器について', path: 'ホーム > 自動火災報知設備 > 機器',
+    keywords: '機器 P型1級 受信機 感知器 差動式 定温式 光電式 煙 熱 PBL 発信機 表示灯 ベル 地区音響 鳴動方式 区分鳴動 一斉鳴動 GP3級 フレキシブルP-1 シンプルP-1 60℃ 70℃ 防水型 キッチン 押し入れ' },
+  { tab: 'fire-survey', icon: '&#128269;', title: '現場調査チェックリスト', path: 'ホーム > 自動火災報知設備 > 現場調査',
+    keywords: '現場調査 チェックリスト survey 中継ボックス 系統図 竣工図面 配線 バッテリ 写真記録 PBL 鳴動方式 GP3級 施工可能条件' },
+  { tab: 'fire-manual', icon: '&#128214;', title: '設置マニュアル', path: 'ホーム > 自動火災報知設備 > 設置マニュアル',
+    keywords: 'マニュアル 設置 manual シンプルP-1 新入社員 ステップ 端子接続 トラブルシューティング FAQ 安全' },
+  { tab: 'electric-lock', icon: '&#128273;', title: '電気錠', path: 'ホーム > 電気錠',
+    keywords: '電気錠 lock オートロック 解錠 施錠 鍵' },
+  { tab: 'lighting', icon: '&#128161;', title: '照明', path: 'ホーム > 照明',
+    keywords: '照明 lighting LED ライト 蛍光灯 光源' },
+  { tab: 'catalog', icon: '&#128218;', title: '機器カタログリンク', path: 'ホーム > 機器カタログ',
+    keywords: 'カタログ catalog メーカー リンク 製品' }
+];
+
+function handleSearch(e) {
+  var q = document.getElementById('searchInput').value.trim().toLowerCase();
+  var resultsEl = document.getElementById('searchResults');
+
+  if (!q || q.length < 1) {
+    resultsEl.classList.remove('open');
+    return;
+  }
+
+  var matches = [];
+  searchIndex.forEach(function(item) {
+    var haystack = (item.title + ' ' + item.keywords + ' ' + item.path).toLowerCase();
+    if (haystack.indexOf(q) !== -1) {
+      var snippetStart = haystack.indexOf(q);
+      var start = Math.max(0, snippetStart - 15);
+      var end = Math.min(haystack.length, snippetStart + q.length + 30);
+      var raw = (item.title + ' ' + item.keywords + ' ' + item.path).substring(start, end);
+      var snippet = raw.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>');
+      matches.push({ item: item, snippet: '...' + snippet + '...' });
+    }
+  });
+
+  if (matches.length === 0) {
+    // Full-text search within tab content
+    document.querySelectorAll('.tab-content').forEach(function(tab) {
+      var tabId = tab.id.replace('tab-', '');
+      var text = tab.textContent.toLowerCase();
+      if (text.indexOf(q) !== -1) {
+        var idx = text.indexOf(q);
+        var s = Math.max(0, idx - 20);
+        var snip = tab.textContent.substring(s, idx + q.length + 30);
+        snip = snip.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>');
+        var found = searchIndex.find(function(si) { return si.tab === tabId; });
+        if (found) {
+          matches.push({ item: found, snippet: '...' + snip + '...' });
+        }
+      }
+    });
+  }
+
+  if (matches.length === 0) {
+    resultsEl.innerHTML = '<div class="search-no-result">「' + q + '」に一致する情報が見つかりませんでした</div>';
+  } else {
+    resultsEl.innerHTML = matches.map(function(m) {
+      return '<a class="search-result-item" onclick="showTab(\'' + m.item.tab + '\');closeSearch();">' +
+        '<span class="sr-icon">' + m.item.icon + '</span>' +
+        '<div class="sr-text"><div class="sr-title">' + m.item.title + '</div>' +
+        '<div class="sr-path">' + m.item.path + '</div>' +
+        '<div class="sr-snippet">' + m.snippet + '</div></div></a>';
+    }).join('');
+  }
+  resultsEl.classList.add('open');
+
+  if (e && e.key === 'Enter' && matches.length === 1) {
+    showTab(matches[0].item.tab);
+    closeSearch();
+  }
+}
+
+function closeSearch() {
+  document.getElementById('searchResults').classList.remove('open');
+  document.getElementById('searchInput').value = '';
+}
+
+document.addEventListener('click', function(e) {
+  var sr = document.getElementById('searchResults');
+  var si = document.getElementById('searchInput');
+  if (!sr.contains(e.target) && e.target !== si) {
+    sr.classList.remove('open');
+  }
+});
 </script>
 
 </body>
