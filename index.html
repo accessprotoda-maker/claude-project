@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>インターホン・自動火災報知設備 設置マニュアル</title>
+<style>
+:root {
+  --navy: #1B3A5C;
+  --dark-blue: #2C5F8A;
+  --accent: #3A7CBD;
+  --light-blue: #D6EAF8;
+  --red: #C0392B;
+  --orange: #E67E22;
+  --green: #27AE60;
+  --light-gray: #F7F9FC;
+  --border: #E0E6ED;
+  --text: #2C3E50;
+  --text-light: #5D6D7E;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Hiragino Kaku Gothic ProN", "Meiryo", "Noto Sans JP", sans-serif;
+  color: var(--text);
+  background: #F0F4F8;
+  line-height: 1.8;
+}
+
+/* --- Header --- */
+header {
+  background: linear-gradient(135deg, var(--navy), var(--dark-blue));
+  color: #fff;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+header.scrolled {
+  padding: 0.8rem 1.5rem;
+}
+header h1 {
+  font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+header .subtitle {
+  font-size: clamp(0.8rem, 2vw, 1.1rem);
+  opacity: .8;
+  margin-top: .5rem;
+}
+header.scrolled .subtitle { display: none; }
+
+/* --- Nav --- */
+nav {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  overflow-x: auto;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+nav a {
+  display: inline-block;
+  padding: .75rem 1.2rem;
+  color: var(--dark-blue);
+  text-decoration: none;
+  font-size: .85rem;
+  font-weight: 600;
+  border-bottom: 3px solid transparent;
+  transition: all .2s;
+}
+nav a:hover, nav a.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--light-blue);
+}
+
+/* --- Main --- */
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+/* --- Sections --- */
+section {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  margin-bottom: 2rem;
+  overflow: hidden;
+  scroll-margin-top: 60px;
+}
+section > .section-header {
+  background: var(--navy);
+  color: #fff;
+  padding: 1rem 1.5rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+section > .section-header .num {
+  background: var(--accent);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .95rem;
+  flex-shrink: 0;
+}
+.section-body { padding: 1.5rem; }
+
+/* --- Steps --- */
+.step {
+  border-left: 4px solid var(--accent);
+  padding: .8rem 1.2rem;
+  margin-bottom: 1.2rem;
+  background: var(--light-gray);
+  border-radius: 0 8px 8px 0;
+}
+.step.important {
+  border-left-color: var(--red);
+  background: #FDF2F0;
+}
+.step-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--dark-blue);
+  margin-bottom: .4rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.step.important .step-title { color: var(--red); }
+.step-num {
+  background: var(--accent);
+  color: #fff;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .8rem;
+  flex-shrink: 0;
+}
+.step.important .step-num { background: var(--red); }
+
+/* --- Alerts --- */
+.alert {
+  padding: .8rem 1rem;
+  border-radius: 8px;
+  margin: .8rem 0;
+  font-size: .9rem;
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+}
+.alert-danger {
+  background: #FDEDEC;
+  border-left: 4px solid var(--red);
+  color: var(--red);
+  font-weight: 600;
+}
+.alert-warning {
+  background: #FFF3CD;
+  border-left: 4px solid var(--orange);
+  color: #856404;
+}
+.alert-info {
+  background: var(--light-blue);
+  border-left: 4px solid var(--accent);
+  color: var(--dark-blue);
+}
+.alert-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+/* --- Tables --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: .88rem;
+}
+th {
+  background: var(--navy);
+  color: #fff;
+  padding: .6rem .8rem;
+  text-align: left;
+  font-weight: 600;
+}
+td {
+  padding: .55rem .8rem;
+  border-bottom: 1px solid var(--border);
+}
+tr:nth-child(even) td { background: var(--light-gray); }
+tr:hover td { background: var(--light-blue); }
+
+/* --- Flow --- */
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0;
+}
+.flow-item {
+  background: var(--accent);
+  color: #fff;
+  padding: .5rem .8rem;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 90px;
+  transition: transform .2s;
+}
+.flow-item:hover { transform: scale(1.05); }
+.flow-item.final { background: var(--green); }
+.flow-arrow { color: var(--accent); font-size: 1.2rem; font-weight: 700; }
+
+/* --- Lists --- */
+.section-body ul, .section-body ol {
+  padding-left: 1.3rem;
+  margin: .5rem 0;
+}
+.section-body li { margin-bottom: .3rem; font-size: .92rem; }
+.section-body li strong { color: var(--dark-blue); }
+
+/* --- Badge --- */
+.badge {
+  display: inline-block;
+  padding: .15rem .5rem;
+  border-radius: 4px;
+  font-size: .75rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.badge-red { background: var(--red); color: #fff; }
+.badge-blue { background: var(--accent); color: #fff; }
+
+/* --- FAQ --- */
+details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: .6rem;
+  overflow: hidden;
+}
+details[open] { border-color: var(--accent); }
+summary {
+  padding: .8rem 1rem;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--dark-blue);
+  background: var(--light-gray);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "Q"; background: var(--accent); color: #fff; width: 1.5rem; height: 1.5rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .8rem; flex-shrink: 0; }
+details[open] summary { background: var(--light-blue); }
+details .answer {
+  padding: .8rem 1rem .8rem 3rem;
+  font-size: .9rem;
+  border-top: 1px solid var(--border);
+}
+
+/* --- Safety cards --- */
+.safety-card {
+  display: flex;
+  align-items: flex-start;
+  gap: .8rem;
+  padding: .8rem 1rem;
+  margin-bottom: .6rem;
+  background: #FDEDEC;
+  border-radius: 8px;
+  border-left: 5px solid var(--red);
+}
+.safety-num {
+  background: var(--red);
+  color: #fff;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: .15rem;
+}
+.safety-text { font-weight: 600; color: var(--red); font-size: .92rem; }
+
+/* --- Print --- */
+@media print {
+  header { position: static; padding: 1.5rem; }
+  nav { display: none; }
+  section { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+  body { background: #fff; }
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .section-body { padding: 1rem; }
+  table { font-size: .78rem; }
+  th, td { padding: .4rem .5rem; }
+}
+
+/* --- TOC (top of page) --- */
+.toc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: .8rem;
+}
+.toc-card {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: .8rem 1rem;
+  background: var(--light-gray);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid var(--border);
+  transition: all .2s;
+}
+.toc-card:hover {
+  background: var(--light-blue);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+.toc-num {
+  background: var(--accent);
+  color: #fff;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.toc-label .toc-title { font-weight: 700; color: var(--dark-blue); font-size: .95rem; }
+.toc-label .toc-desc { font-size: .78rem; color: var(--text-light); }
+
+/* scroll-to-top */
+.scroll-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  transition: opacity .3s;
+}
+.scroll-top.show { display: flex; }
+</style>
+</head>
+<body>
+
+<header id="header">
+  <h1>インターホン・自動火災報知設備 設置マニュアル</h1>
+  <div class="subtitle">Panasonic シンプルP-1シリーズ ｜ 新入社員向け</div>
+</header>
+
+<nav id="nav">
+  <a href="#overview">概要</a>
+  <a href="#preparation">事前準備</a>
+  <a href="#flow">全体の流れ</a>
+  <a href="#steps">具体的な手順</a>
+  <a href="#terminals">端子一覧</a>
+  <a href="#troubleshooting">トラブル対応</a>
+  <a href="#faq">FAQ</a>
+  <a href="#safety">安全注意事項</a>
+</nav>
+
+<main>
+
+<!-- TOC -->
+<section>
+  <div class="section-body">
+    <div class="toc-grid">
+      <a href="#overview" class="toc-card"><span class="toc-num">1</span><span class="toc-label"><span class="toc-title">概要</span><br><span class="toc-desc">何のための作業か</span></span></a>
+      <a href="#preparation" class="toc-card"><span class="toc-num">2</span><span class="toc-label"><span class="toc-title">事前準備・前提条件</span><br><span class="toc-desc">資格・工具・部材</span></span></a>
+      <a href="#flow" class="toc-card"><span class="toc-num">3</span><span class="toc-label"><span class="toc-title">全体の大まかな流れ</span><br><span class="toc-desc">作業フロー</span></span></a>
+      <a href="#steps" class="toc-card"><span class="toc-num">4</span><span class="toc-label"><span class="toc-title">具体的な手順</span><br><span class="toc-desc">ステップバイステップ</span></span></a>
+      <a href="#troubleshooting" class="toc-card"><span class="toc-num">5</span><span class="toc-label"><span class="toc-title">トラブルシューティング</span><br><span class="toc-desc">よくある質問・注意点</span></span></a>
+    </div>
+  </div>
+</section>
+
+<!-- 1. Overview -->
+<section id="overview">
+  <div class="section-header"><span class="num">1</span> 概要 ― 何のための作業か</div>
+  <div class="section-body">
+    <p>この作業は、建物に<strong>インターホン</strong>（来客対応用の通話設備）と<strong>自動火災報知設備</strong>（火災を自動で検知し、警報を出す装置）を設置するものです。</p>
+
+    <div class="alert alert-info">
+      <span class="alert-icon">&#128218;</span>
+      <div><strong>シンプルP-1シリーズとは</strong><br>
+      Panasonic製の、インターホン機能と自動火災報知機能を一体化した受信機（親機）を中心に、感知器（火災センサー）、ベル、スピーカー、ドアホン子機などを組み合わせたシステムです。</div>
+    </div>
+
+    <div class="alert alert-danger">
+      <span class="alert-icon">&#9888;&#65039;</span>
+      <div><strong>この作業を行う理由</strong>
+        <ul>
+          <li>建物の居住者・利用者の安全を守るため（<strong>消防法に基づく義務設置</strong>）</li>
+          <li>来客時の通話・解錠を行うため</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Preparation -->
+<section id="preparation">
+  <div class="section-header"><span class="num">2</span> 事前準備・前提条件</div>
+  <div class="section-body">
+
+    <h3 style="color:var(--dark-blue);margin-bottom:.6rem;">必要な資格・許可</h3>
+    <div class="alert alert-warning">
+      <span class="alert-icon">&#128272;</span>
+      <div>
+        <strong>工事担任者資格</strong> または <strong>電気工事士資格</strong> が必要です（有資格者の監督のもとで作業してください）。<br>
+        消防設備士の資格が必要な場合があります（管轄の消防署に確認してください）。
+      </div>
+    </div>
+
+    <h3 style="color:var(--dark-blue);margin:.8rem 0 .4rem;">必要な工具一覧</h3>
+    <table>
+      <thead><tr><th>工具名</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td>プラスドライバー</td><td>ねじ止め全般</td></tr>
+        <tr><td>マイナスドライバー</td><td>端子台（電線を接続する部品）への配線</td></tr>
+        <tr><td>ワイヤーストリッパー</td><td>電線の被覆（外側のカバー）をむく</td></tr>
+        <tr><td>電工ナイフ</td><td>ケーブルの外装をむく</td></tr>
+        <tr><td>テスター（回路計）</td><td>配線の導通確認（電気が通っているか確認）</td></tr>
+        <tr><td>水平器</td><td>機器を水平に取り付けるため</td></tr>
+        <tr><td>ドリル</td><td>壁面への穴あけ</td></tr>
+        <tr><td>脚立・はしご</td><td>高所作業用</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="color:var(--dark-blue);margin:.8rem 0 .4rem;">必要な部材（施工図面で確認）</h3>
+    <ul>
+      <li><strong>受信機（親機）</strong> ― 火災受信・インターホン制御を行う本体</li>
+      <li><strong>感知器</strong> ― 煙や熱を検知するセンサー（天井に取り付け）</li>
+      <li><strong>発信機</strong> ― 手動で火災信号を送る押しボタン（廊下等に設置）</li>
+      <li><strong>ベル・ブザー</strong> ― 火災時に警報音を鳴らす装置</li>
+      <li><strong>スピーカー（SP）</strong> ― 放送用</li>
+      <li><strong>ドアホン子機</strong> ― 玄関等に設置する通話装置</li>
+      <li><strong>住戸用受信機</strong> ― 各住戸内の通話・報知装置</li>
+      <li><strong>配線用ケーブル</strong> ― 施工図面で指定された種類・本数</li>
+      <li><strong>取付ねじ・アンカー</strong> ― 壁面固定用</li>
+    </ul>
+
+    <h3 style="color:var(--dark-blue);margin:.8rem 0 .4rem;">事前確認事項</h3>
+    <div class="alert alert-danger">
+      <span class="alert-icon">&#10071;</span>
+      <div><strong>施工図面を必ず入手し、内容を理解してから作業を開始してください</strong></div>
+    </div>
+    <ul>
+      <li>設置場所の壁の材質（コンクリート・石膏ボード等）を確認する</li>
+      <li>電源の位置と容量を確認する（AC100V電源が必要）</li>
+      <li>配線ルートに障害物がないか事前に現地を確認する</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 3. Flow -->
+<section id="flow">
+  <div class="section-header"><span class="num">3</span> 全体の大まかな流れ</div>
+  <div class="section-body">
+    <div class="flow">
+      <div class="flow-item">&#9312; 図面確認<br>現地調査</div><span class="flow-arrow">&#10132;</span>
+      <div class="flow-item">&#9313; 受信機<br>設置準備</div><span class="flow-arrow">&#10132;</span>
+      <div class="flow-item">&#9314; 各機器<br>取付</div><span class="flow-arrow">&#10132;</span>
+      <div class="flow-item">&#9315; 配線<br>工事</div><span class="flow-arrow">&#10132;</span>
+      <div class="flow-item">&#9316; 受信機<br>配線接続</div><span class="flow-arrow">&#10132;</span>
+      <div class="flow-item">&#9317; 蓄電池<br>接続</div><span class="flow-arrow">&#10132;</span>
+      <div class="flow-item">&#9318; 電源投入<br>動作確認</div><span class="flow-arrow">&#10132;</span>
+      <div class="flow-item">&#9319; 銘板記入<br>仕上げ</div><span class="flow-arrow">&#10132;</span>
+      <div class="flow-item final">&#9320; 消防検査<br>立会い</div>
+    </div>
+    <div class="alert alert-danger">
+      <span class="alert-icon">&#9888;&#65039;</span>
+      <div><strong>ステップ5「受信機への配線接続」が最も重要な工程です。</strong><br>各ステップ完了後、次に進む前に必ず確認を行ってください。不明点は自己判断せず、必ず上長に確認してください。</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Steps -->
+<section id="steps">
+  <div class="section-header"><span class="num">4</span> 具体的な手順（ステップバイステップ）</div>
+  <div class="section-body">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-title"><span class="step-num">1</span> 施工図面の確認・現地調査</div>
+      <ul>
+        <li>施工図面で以下を確認する：
+          <ul>
+            <li>受信機の設置場所（通常は1階の管理室や玄関付近）</li>
+            <li>各階の感知器の数と位置</li>
+            <li>ベル・発信機の設置位置</li>
+            <li>ドアホン子機の設置位置</li>
+            <li>配線ルート</li>
+          </ul>
+        </li>
+        <li>現地で壁の材質・スペースを確認する</li>
+      </ul>
+      <div class="alert alert-danger"><span class="alert-icon">&#10071;</span><div><strong>図面と現地が異なる場合は、必ず上長に報告してください</strong></div></div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-title"><span class="step-num">2</span> 受信機（親機）の取付準備</div>
+      <ul>
+        <li>壁面に取付用の穴をあける（本体外形：横370mm x 縦500mm程度）</li>
+        <li>取付穴の間隔：横310mm x 縦450mm（機種により異なるため図面で確認）</li>
+        <li>壁面にアンカー（壁に固定するための部品）を打ち込む</li>
+        <li>取付板（受信機の裏板）をねじで固定する</li>
+      </ul>
+      <div class="alert alert-warning"><span class="alert-icon">&#128204;</span><div><strong>取付位置は床から約1.5mの高さ</strong>に設置し、<strong>水平器で水平を確認</strong>してください。</div></div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-title"><span class="step-num">3</span> 配線の引き込み</div>
+      <ul>
+        <li>施工図面に従い、受信機設置位置までケーブルを配線する</li>
+        <li>ケーブルは受信機の下部または側面のノックアウト穴（打ち抜き穴）から引き込む</li>
+        <li>ケーブルをまとめて整理し、余長（予備の長さ）を適切に取る</li>
+      </ul>
+      <div class="alert alert-warning"><span class="alert-icon">&#128204;</span><div>ケーブルの<strong>被覆むき長さ：約12mm</strong>、<strong>外装むき長さ：約10mm</strong></div></div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-title"><span class="step-num">4</span> 感知器の取付</div>
+      <div class="alert alert-info"><span class="alert-icon">&#128218;</span><div>感知器とは、煙や熱を感知して火災信号を受信機に送る装置です。天井面に取り付けます。</div></div>
+      <ol>
+        <li>天井に感知器用の台座（ベース）をねじで固定する</li>
+        <li>台座に配線を接続する
+          <ul>
+            <li><strong>L端子（ライン）</strong>：信号線（＋側）</li>
+            <li><strong>C端子（コモン）</strong>：共通線（−側）</li>
+          </ul>
+        </li>
+        <li>感知器本体を台座にはめ込む（右に回してロック）</li>
+        <li>最後の感知器に終端抵抗器（10kΩ）を取り付ける</li>
+      </ol>
+      <div class="alert alert-danger"><span class="alert-icon">&#9888;&#65039;</span><div><strong>壁から60cm以上離して設置</strong>してください。<strong>エアコンの吹出口の近くには設置不可</strong>（誤報の原因）。</div></div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step">
+      <div class="step-title"><span class="step-num">5</span> ベル・発信機・ドアホンの取付</div>
+      <ul>
+        <li><strong>ベル（警報音装置）</strong>：指定の位置に取り付け、BL端子・BC端子に配線を接続</li>
+        <li><strong>発信機（手動の火災報知ボタン）</strong>：廊下等の指定位置に取り付け</li>
+        <li><strong>ドアホン子機</strong>：玄関等に取り付け</li>
+        <li><strong>住戸用受信機</strong>：各部屋のインターホン親機を取り付け</li>
+      </ul>
+      <div class="alert alert-warning"><span class="alert-icon">&#128204;</span><div>発信機の<strong>設置高さ：床から0.8m〜1.5m</strong>の位置</div></div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="step important">
+      <div class="step-title"><span class="step-num">6</span> 受信機への配線接続 <span class="badge badge-red">最重要</span></div>
+      <div class="alert alert-danger"><span class="alert-icon">&#9888;&#65039;</span><div><strong>この工程が最も重要です。端子記号を間違えると機器が正常に動作しません。</strong></div></div>
+      <ol>
+        <li>受信機の電源スイッチがOFFになっていることを確認する</li>
+        <li>端子台のねじをゆるめる</li>
+        <li>ケーブルの芯線（銅線部分）を端子台に差し込む</li>
+        <li>ねじをしっかり締める</li>
+        <li><strong>接続後、軽く引っ張って抜けないことを確認する</strong></li>
+        <li>全ての配線が完了したら、結線表を作成する</li>
+      </ol>
+      <div class="alert alert-danger"><span class="alert-icon">&#10071;</span><div><strong>1本ずつ確認しながら接続</strong>してください。<strong>電源線（P1, P2）は最後に接続</strong>してください。</div></div>
+      <p style="margin-top:.5rem;">&#128073; 端子記号の一覧は <a href="#terminals" style="color:var(--accent);font-weight:700;">端子一覧表</a> を参照してください。</p>
+    </div>
+
+    <!-- Step 7 -->
+    <div class="step">
+      <div class="step-title"><span class="step-num">7</span> 蓄電池（バッテリー）の接続</div>
+      <div class="alert alert-info"><span class="alert-icon">&#128218;</span><div>蓄電池は、停電時にも設備を動かすための予備電源です。Ni-Cd（ニッケルカドミウム）タイプです。</div></div>
+      <ul>
+        <li>受信機内部の蓄電池収納スペースに蓄電池を設置する</li>
+        <li>プラス（+）とマイナス（-）を正しく接続する
+          <ul>
+            <li><strong style="color:var(--red);">赤い線 → プラス（+）</strong></li>
+            <li><strong>黒い線 → マイナス（-）</strong></li>
+          </ul>
+        </li>
+      </ul>
+      <div class="alert alert-danger"><span class="alert-icon">&#9888;&#65039;</span><div><strong>極性（+と-）を逆に接続すると機器が故障します。必ず確認してください。</strong></div></div>
+    </div>
+
+    <!-- Step 8 -->
+    <div class="step">
+      <div class="step-title"><span class="step-num">8</span> 電源投入・動作確認テスト</div>
+      <ol>
+        <li>全ての配線が完了していることを再確認する</li>
+        <li>受信機の扉を閉める</li>
+        <li>AC100V電源を投入する（ブレーカーをONにする）</li>
+        <li>受信機の電源スイッチをONにする</li>
+      </ol>
+      <h4 style="margin:.8rem 0 .3rem;color:var(--dark-blue);">火災報知系の確認</h4>
+      <ul>
+        <li>各感知器の回線が「正常」と表示されることを確認</li>
+        <li>テスト用の煙（加煙試験器）で感知器を作動させ、受信機が「火災」を表示することを確認</li>
+        <li>ベルが鳴動することを確認</li>
+        <li>発信機のボタンを押して受信機が反応することを確認</li>
+      </ul>
+      <h4 style="margin:.8rem 0 .3rem;color:var(--dark-blue);">インターホン系の確認</h4>
+      <ul>
+        <li>ドアホン子機の呼出ボタンを押して、住戸用受信機が鳴動することを確認</li>
+        <li>通話ができることを確認</li>
+        <li>解錠機能がある場合は、解錠動作を確認</li>
+      </ul>
+      <div class="alert alert-danger"><span class="alert-icon">&#9888;&#65039;</span><div><strong>異常があった場合は、電源を切ってから配線を確認してください</strong></div></div>
+    </div>
+
+    <!-- Step 9 -->
+    <div class="step">
+      <div class="step-title"><span class="step-num">9</span> 銘板の記入・仕上げ</div>
+      <ul>
+        <li>受信機前面の銘板（名前シール）に以下を記入する：設置場所、設置年月日、施工業者名</li>
+        <li>DIPスイッチ（機器の設定スイッチ）の設定を施工図面の指示通りに行う（OP1〜OP4）</li>
+        <li>受信機内部を清掃し、扉を閉めて施錠する</li>
+        <li>施工完了報告書を作成する</li>
+      </ul>
+    </div>
+
+    <!-- Step 10 -->
+    <div class="step">
+      <div class="step-title"><span class="step-num">10</span> 消防検査の立会い</div>
+      <ul>
+        <li>管轄の消防署に検査申請を行う</li>
+        <li>消防検査員の立会いのもと、全ての機器の動作確認を行う</li>
+        <li>検査で指摘された事項があれば速やかに是正する</li>
+        <li>検査合格後、検査済証を受領する</li>
+      </ul>
+      <div class="alert alert-danger"><span class="alert-icon">&#10071;</span><div><strong>消防検査に合格するまで建物の使用は開始できません</strong></div></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Terminal Reference -->
+<section id="terminals">
+  <div class="section-header"><span class="num">&#128268;</span> 端子記号 一覧表（配線時に参照）</div>
+  <div class="section-body">
+    <table>
+      <thead><tr><th>端子記号</th><th>意味</th><th>接続先</th></tr></thead>
+      <tbody>
+        <tr><td><strong>P1, P2</strong></td><td>電源端子</td><td>AC100V電源</td></tr>
+        <tr><td><strong>L1, L2, Ln</strong></td><td>感知器回線</td><td>各階の感知器</td></tr>
+        <tr><td><strong>C</strong></td><td>コモン（共通線）</td><td>感知器の共通線</td></tr>
+        <tr><td><strong>A, T</strong></td><td>アドレス・電話回線</td><td>インターホン回線</td></tr>
+        <tr><td><strong>B, BC</strong></td><td>ベル回線</td><td>ベル・ブザー</td></tr>
+        <tr><td><strong>BL</strong></td><td>ベルライン</td><td>ベル信号線</td></tr>
+        <tr><td><strong>EA, EL</strong></td><td>戸外表示灯回線</td><td>住戸用表示灯</td></tr>
+        <tr><td><strong>EF, EC</strong></td><td>戸外通話回線</td><td>住戸用通話</td></tr>
+        <tr><td><strong>EB</strong></td><td>戸外ブザー</td><td>住戸用ブザー</td></tr>
+        <tr><td><strong>SP1, SP2</strong></td><td>スピーカー</td><td>スピーカー</td></tr>
+        <tr><td><strong>Fc, Fb, Fa</strong></td><td>防排煙連動</td><td>防火戸・排煙装置</td></tr>
+        <tr><td><strong>D, DC</strong></td><td>戸開放回線</td><td>自動ドア連動</td></tr>
+        <tr><td><strong>H, HL</strong></td><td>放送回線</td><td>放送設備</td></tr>
+        <tr><td><strong>U, UL</strong></td><td>非常電源</td><td>非常電源装置</td></tr>
+        <tr><td><strong>N, NC</strong></td><td>地区音響</td><td>地区ベル</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 5. Troubleshooting -->
+<section id="troubleshooting">
+  <div class="section-header"><span class="num">5</span> トラブルシューティング</div>
+  <div class="section-body">
+    <table>
+      <thead><tr><th>症状</th><th>考えられる原因</th><th>対処法</th></tr></thead>
+      <tbody>
+        <tr><td>受信機の電源が入らない</td><td>電源ケーブルの接続不良 / ブレーカーがOFF</td><td>電源配線を確認 / ブレーカーをONにする</td></tr>
+        <tr><td>「断線」の表示が出る</td><td>配線が切れている / 端子接続が外れている</td><td>該当回線の配線を1本ずつ確認する</td></tr>
+        <tr><td>感知器が反応しない</td><td>感知器が台座にしっかりはまっていない / 配線ミス</td><td>感知器を一度外して付け直す / L・C端子の配線を確認</td></tr>
+        <tr><td>誤報が出る</td><td>感知器周辺の環境（蒸気・ほこり等）/ 終端抵抗の未接続</td><td>設置環境を確認 / 終端抵抗器（10kΩ）が取り付いているか確認</td></tr>
+        <tr><td>ベルが鳴らない</td><td>ベル回線の配線ミス / ベル本体の故障</td><td>BL・BC端子の接続を確認 / ベル本体を交換して試す</td></tr>
+        <tr><td>インターホンの通話ができない</td><td>通話回線の配線ミス</td><td>EA・EL・EF・EC端子の接続を確認</td></tr>
+        <tr><td>蓄電池の充電ランプが点灯しない</td><td>蓄電池の接続不良 / 極性間違い</td><td>プラス・マイナスの接続を確認</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-header"><span class="num">?</span> よくある質問（FAQ）</div>
+  <div class="section-body">
+    <details>
+      <summary>配線のケーブル種類がわかりません。</summary>
+      <div class="answer">施工図面に記載されています。一般的に、感知器回線には<strong>HP（耐熱ペア線）</strong>、インターホン回線には<strong>FCPV（ビニル被覆ペア線）</strong>等を使用します。不明な場合は上長に確認してください。</div>
+    </details>
+    <details>
+      <summary>終端抵抗器はどこに付けますか？</summary>
+      <div class="answer">各回線の最後の機器（一番遠い感知器等）に取り付けます。受信機から見て最も末端の機器です。抵抗値は<strong>10kΩ</strong>です。</div>
+    </details>
+    <details>
+      <summary>感知器の種類が複数ありますが、どう使い分けますか？</summary>
+      <div class="answer"><strong>煙感知器</strong>は居室・廊下に、<strong>熱感知器</strong>はキッチン・浴室付近に使用します。施工図面の指示に従ってください。</div>
+    </details>
+    <details>
+      <summary>配線を間違えた場合、どうすればよいですか？</summary>
+      <div class="answer"><strong style="color:var(--red);">まず電源を切ってください。</strong>その後、結線表と照らし合わせて正しい端子に接続し直してください。</div>
+    </details>
+    <details>
+      <summary>作業中に「分からないこと」が出たらどうすればいいですか？</summary>
+      <div class="answer"><strong style="color:var(--red);">自己判断で作業を進めないでください。</strong>必ず上長または先輩社員に相談してください。安全に関わる設備ですので、確認を怠ると人命に関わります。</div>
+    </details>
+  </div>
+</section>
+
+<!-- Safety -->
+<section id="safety">
+  <div class="section-header" style="background:var(--red);"><span class="num" style="background:#fff;color:var(--red);">!</span> 安全上の重要注意事項</div>
+  <div class="section-body">
+    <div class="safety-card"><span class="safety-num">1</span><span class="safety-text">感電に注意してください。配線作業は必ず電源を切った状態で行ってください。</span></div>
+    <div class="safety-card"><span class="safety-num">2</span><span class="safety-text">濡れた手で作業しないでください。</span></div>
+    <div class="safety-card"><span class="safety-num">3</span><span class="safety-text">本体を分解しないでください。修理はメーカーまたは有資格者が行います。</span></div>
+    <div class="safety-card"><span class="safety-num">4</span><span class="safety-text">必ずアース線（接地線）を接続してください。漏電による感電を防ぎます。</span></div>
+    <div class="safety-card"><span class="safety-num">5</span><span class="safety-text">高所作業時は必ず安全帯を使用してください。</span></div>
+    <div class="safety-card"><span class="safety-num">6</span><span class="safety-text">作業後は必ず消防検査を受けてください。</span></div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="text-align:center;padding:2rem;color:var(--text-light);font-size:.85rem;">
+  <p>対象機器：Panasonic シンプルP-1シリーズ（施工説明書 8A3 P02 00003 / S0615-20423AB）</p>
+  <p>作成日：2026年6月17日</p>
+</footer>
+
+</main>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#9650;</button>
+
+<script>
+// Sticky header shrink
+const header = document.getElementById('header');
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  header.classList.toggle('scrolled', window.scrollY > 80);
+  document.getElementById('scrollTop').classList.toggle('show', window.scrollY > 400);
+});
+
+// Active nav link
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+      });
+    }
+  });
+}, { rootMargin: '-80px 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
