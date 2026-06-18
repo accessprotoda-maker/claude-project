@@ -545,583 +545,21 @@ html { scroll-behavior: smooth; }
 
 <!-- ===== MAIN ===== -->
 <div class="page-container">
-
-<!-- ============ HOME ============ -->
-<div class="tab-content active" id="tab-home">
-  <div class="hero-section">
-    <span class="hero-badge">KNOWLEDGE PORTAL</span>
-    <h1><span class="brand">TSC</span>アクセス・プロ<br>支援ポータルサイト</h1>
-    <p class="hero-desc">設備工事に関するナレッジを集約。インターホン・自動火災報知設備・電気錠・照明の技術情報をいつでも確認できます。</p>
-  </div>
-  <div class="quick-stats">
-    <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">カテゴリ</div></div>
-    <div class="stat-card"><div class="stat-num">15+</div><div class="stat-label">技術記事</div></div>
-    <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">マニュアル</div></div>
-  </div>
-  <div class="section-header"><span class="section-icon">&#128204;</span><h2>カテゴリから探す</h2></div>
-  <div class="category-grid">
-    <a class="cat-card" onclick="showTab('intercom')"><span class="cat-icon">&#128222;</span><div class="cat-name">インターホン</div><div class="cat-count">3記事</div></a>
-    <a class="cat-card" onclick="showTab('fire-alarm')"><span class="cat-icon">&#128293;</span><div class="cat-name">自動火災<br>報知設備</div><div class="cat-count">4記事</div></a>
-    <a class="cat-card" onclick="showTab('electric-lock')"><span class="cat-icon">&#128273;</span><div class="cat-name">電気錠</div><div class="cat-count">2記事</div></a>
-    <a class="cat-card" onclick="showTab('lighting')"><span class="cat-icon">&#128161;</span><div class="cat-name">照明器具</div><div class="cat-count">3記事</div></a>
-    <a class="cat-card" onclick="showTab('faq')"><span class="cat-icon">&#10067;</span><div class="cat-name">FAQ</div><div class="cat-count">全カテゴリ</div></a>
-  </div>
-  <div class="content-card" style="margin-top:1rem;">
-    <div class="card-header"><div class="card-header-icon">&#128227;</div><div class="card-header-text"><h3>お知らせ</h3><div class="card-meta">最新の更新情報</div></div></div>
-    <div class="card-body">
-      <div class="announce-list">
-        <div class="announce-item"><span class="announce-date">2026/06/18</span><span class="announce-tag new">NEW</span><span class="announce-text">照明器具・電気錠の詳細コンテンツを追加</span></div>
-        <div class="announce-item"><span class="announce-date">2026/06/18</span><span class="announce-tag update">更新</span><span class="announce-text">ダークモード・お気に入り・FAQ機能を追加</span></div>
-        <div class="announce-item"><span class="announce-date">2026/06/17</span><span class="announce-tag new">NEW</span><span class="announce-text">インターホン・自火報 設置マニュアルを追加</span></div>
-      </div>
-    </div>
-  </div>
-  <div class="content-card">
-    <div class="card-header"><div class="card-header-icon">&#128197;</div><div class="card-header-text"><h3>共有カレンダー</h3></div></div>
-    <div class="card-body"><div class="calendar-placeholder"><div class="cal-icon">&#128197;</div><p>Googleカレンダーの埋め込みエリア</p></div></div>
-  </div>
-</div>
-
-<!-- ============ INTERCOM ============ -->
-<div class="tab-content" id="tab-intercom">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><span>インターホン</span>
-    <span style="margin-left:auto;cursor:pointer;font-size:.8rem;" onclick="toggleFav('intercom','&#128222;','インターホン')">&#9734; お気に入り</span>
-  </div>
-  <div class="content-card">
-    <div class="card-header"><div class="card-header-icon">&#128222;</div><div class="card-header-text"><h3>マンションHAシステム インターホン</h3><div class="card-meta">Panasonic マンション用インターホン設備</div></div></div>
-    <div class="card-body">
-      <p>弊社で提案している基幹商品としてPanasonic社製のマンション用インターホン設備が挙げられます。</p>
-      <div style="display:flex;flex-direction:column;gap:.4rem;margin:.8rem 0;">
-        <a class="action-btn action-btn-primary" onclick="showTab('intercom-ref')">&#128209; 結線時参考資料</a>
-        <a class="action-btn action-btn-outline" onclick="showTab('intercom-construction')">&#128736; 施工マニュアル</a>
-      </div>
-      <div class="info-box"><p style="margin:0;">弊社はパナソニック社の協力会社として実績があります。インターホン/自動火災報知設備が二本柱です。</p></div>
-    </div>
-  </div>
-  <div class="section-header"><span class="section-icon">&#128187;</span><h2>シリーズ一覧</h2></div>
-  <div class="product-grid">
-    <div class="product-card"><div class="card-img">&#127960;</div><div class="card-info"><h3>Iシリーズ</h3><div class="card-sub">クラウシュ / クラウシュsquare</div><span class="card-badge">高機能モデル</span></div></div>
-    <div class="product-card"><div class="card-img">&#127961;</div><div class="card-info"><h3>Dシリーズ</h3><div class="card-sub">ウィンティア / ウィンティアR</div><span class="card-badge">スタンダード</span></div></div>
-    <div class="product-card"><div class="card-img">&#128242;</div><div class="card-info"><h3>テレビドアホン</h3><div class="card-sub">単独タイプ</div><span class="card-badge">戸建向け</span></div></div>
-  </div>
-  <div class="dl-btn-group" style="margin-top:1rem;">
-    <a class="dl-btn" href="インターホン・自動火災報知設備_設置マニュアル.pptx" download>&#128196; PPTX</a>
-    <a class="dl-btn" href="インターホン・自動火災報知設備_設置マニュアル.md" download>&#128196; Markdown</a>
-  </div>
-</div>
-
-<!-- ============ INTERCOM REF ============ -->
-<div class="tab-content" id="tab-intercom-ref">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><a onclick="showTab('intercom')">インターホン</a><span class="sep">></span><span>結線時参考資料</span></div>
-  <div class="article-section">
-    <div class="article-header"><h2>インターホン結線時参考資料</h2><div class="article-meta">現場調査/施工時に参考にすること</div></div>
-    <div class="article-body">
-      <h3>アイホンの場合</h3>
-      <div class="table-wrapper"><table class="data-table">
-        <tr><th>項目</th><th>Panasonic/Nationalの場合</th></tr>
-        <tr><td>旧型インターホン機器型番</td><td>パナカラー</td></tr>
-        <tr><td>HA集合盤内インターホンの端子</td><td></td></tr>
-        <tr><td>呼称</td><td>DJ1/DJ2</td></tr>
-        <tr><td>カス</td><td>G+G-</td></tr>
-        <tr><td>電話子機端子</td><td>MA1/MA2/...</td></tr>
-        <tr><td>玄関子機</td><td>FL1/リレー</td></tr>
-        <tr><td>配置子機</td><td>DJ/EI/IAL</td></tr>
-        <tr><td>タナ端子名</td><td>A1/A2(A3)</td></tr>
-        <tr><td>機種端子</td><td>BL82 GT/STC</td></tr>
-      </table></div>
-      <h3>Panasonic3線合線の場合</h3>
-      <p>旧表記の場合、インターホン端子に記載が無くなっています。これがないと旧表器でのスタンス幹線が引けません。</p>
-      <h3>トラブルシューティング</h3>
-      <h4>VOL減衰確認</h4>
-      <p>施工完了後、インターホン端末が全て配置で電話するものの鳴動はアルファベットの文字が映るのみ。インターホンの幹線配線は接続側では対応が出来ません。火災も関連するのでリスクが高いです。</p>
-      <div class="info-box warning"><p class="highlight" style="margin:0;">他社アイホンとは解析が異なり取付していない部品もあります。仕様は一般的にJLとJCに置き直してください。</p></div>
-    </div>
-  </div>
-</div>
-
-<!-- ============ INTERCOM CONSTRUCTION ============ -->
-<div class="tab-content" id="tab-intercom-construction">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><a onclick="showTab('intercom')">インターホン</a><span class="sep">></span><span>施工</span></div>
-  <div class="content-card">
-    <div class="card-header"><div class="card-header-icon">&#128736;</div><div class="card-header-text"><h3>インターホン施工マニュアル</h3><div class="card-meta">Panasonic シンプルP-1シリーズ対応</div></div></div>
-    <div class="card-body">
-      <p>新入社員向けに専門用語の解説付きでステップバイステップで解説しています。</p>
-      <a href="manual-intercom-fire-alarm.html" class="action-btn action-btn-primary" style="margin-top:.6rem;">&#128214; 設置マニュアルを見る</a>
-      <div class="info-box" style="margin-top:.8rem;"><p style="margin:0;"><strong>収録内容：</strong>概要 / 事前準備 / 全体フロー / 10ステップの施工手順 / 端子接続表 / トラブルシューティング / FAQ / 安全注意事項</p></div>
-      <div class="video-placeholder"><div class="play-icon">&#9654;</div><p>施工手順の動画エリア（YouTube等の埋め込み用）</p></div>
-    </div>
-  </div>
-</div>
-
-<!-- ============ FIRE ALARM ============ -->
-<div class="tab-content" id="tab-fire-alarm">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><span>自動火災報知設備</span></div>
-  <div class="content-card">
-    <div class="card-header"><div class="card-header-icon">&#128293;</div><div class="card-header-text"><h3>自動火災報知設備</h3><div class="card-meta">共同住宅用 / 住戸用の設備概要</div></div></div>
-    <div class="card-body">
-      <p>マンション向けの自動火災報知設備は「共同住宅用」と「住戸用」があり、220号・170号の特例基準が適用されます。</p>
-      <div style="display:flex;flex-direction:column;gap:.4rem;margin:.8rem 0;">
-        <a class="action-btn action-btn-primary" onclick="showTab('fire-equipment')">&#128295; 機器について</a>
-        <a class="action-btn action-btn-outline" onclick="showTab('fire-survey')">&#128269; 現場調査について</a>
-        <a class="action-btn action-btn-outline" onclick="showTab('fire-manual')">&#128214; 設置マニュアル</a>
-      </div>
-      <h3>共同住宅用自動火災報知設備</h3>
-      <p>建物全体を集中監視する受信機や共用部の感知器を含む。二方向避難や開放廊下の有無、耐火構造などで設置要件が変わります。</p>
-      <h3>住戸用自動火災報知設備</h3>
-      <p>各住戸内の早期検知に特化。住戸内感知器の自動試験機能など維持管理性が重視される。</p>
-      <div class="info-box">
-        <p style="margin:0;"><strong>対象機能：</strong>自動火災報知設備（共同住宅用/住戸用）、スプリンクラー、消火器など。</p>
-        <p style="margin:0;"><strong>運用の柔軟性：</strong>耐火構造・防火区画に応じて住戸用設備で代替可能。</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ============ FIRE EQUIPMENT ============ -->
-<div class="tab-content" id="tab-fire-equipment">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><a onclick="showTab('fire-alarm')">自動火災報知設備</a><span class="sep">></span><span>機器について</span></div>
-  <div class="article-section">
-    <div class="article-header"><h2>自動火災報知設備の機器について</h2></div>
-    <div class="article-body">
-      <h3>P型1級火災受信機</h3>
-      <p><strong>P型1級受信機は共同住宅や複合用途ビル向けの中央制御装置</strong>で、複数回線の感知器を集中監視。主なシリーズ「フレキシブルP-1」「シンプルP-1」。</p>
-      <h3>火災感知器の種類と使い分け</h3>
-      <div class="table-wrapper"><table class="data-table">
-        <tr><th>種類</th><th>検知原理</th><th>設置場所</th><th>長所</th><th>短所</th></tr>
-        <tr><td><strong>差動式</strong></td><td>温度急変検知</td><td>居室・廊下</td><td>急激加熱に敏感</td><td>湯気で誤発報</td></tr>
-        <tr><td><strong>定温式</strong></td><td>一定温度で作動</td><td>キッチン・押入れ</td><td>誤報に強い</td><td>反応が遅め</td></tr>
-        <tr><td><strong>光電式</strong></td><td>光散乱で煙検知</td><td>廊下・階段・居室</td><td>煙を早期検知</td><td>調理で誤発報</td></tr>
-      </table></div>
-      <div class="info-box"><p style="margin:0;">キッチン：特種60℃防水型、押し入れ：1種70℃、各階EV前：光電式</p></div>
-      <h3>発信機・表示灯・ベル（PBL）</h3>
-      <p>受信機と連動して「発見→通報→一斉通報」を実現する基本機器。</p>
-      <ul><li>発信機：歩行距離50m以内、高さ0.8〜1.5m</li><li>表示灯：夜間視認性・防水性を考慮</li><li>ベル：音圧90dB以上</li></ul>
-      <h3>鳴動方式</h3>
-      <ul><li>一斉鳴動方式（原則）</li><li>区分鳴動方式（5,000人超 or 5階建て以上で3,000㎡超）</li></ul>
-      <h3>GP3級受信機</h3>
-      <p>住戸内の感知設備・発信機・戸外表示器をまとめる宅内住棟型。警報表示・通話機能・故障チェック・停電時維持。</p>
-    </div>
-  </div>
-</div>
-
-<!-- ============ FIRE SURVEY ============ -->
-<div class="tab-content" id="tab-fire-survey">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><a onclick="showTab('fire-alarm')">自動火災報知設備</a><span class="sep">></span><span>現場調査</span></div>
-  <div class="article-section">
-    <div class="article-header"><h2>自動火災報知設備の現場調査</h2></div>
-    <div class="article-body">
-      <h3>既設図面の確認</h3>
-      <ul class="checklist"><li>系統図</li><li>竣工図面(平面図)</li><li>中継位置</li></ul>
-      <h3>必要機器の想定</h3>
-      <ul class="checklist"><li>感知器の種類（差動／定温／光電）</li><li>発信機／表示灯／ベルの有無</li><li>GP3級の有無（住戸用）</li></ul>
-      <h3>中継ボックスの調査（最重要）</h3>
-      <ul class="checklist"><li>設置場所（PS／天井裏／共用廊下）</li><li>収まり（既設配線本数・スペース）</li><li>配線状態（色分け・ラベル・劣化）</li><li>系統の把握（縦系統／横系統／増設の必要性）</li></ul>
-      <h3>感知器の現況調査</h3>
-      <h4>共用部</h4>
-      <ul class="checklist"><li>差動／光電の種類</li><li>設置高さ</li><li>誤報要因（湯気・熱源・換気）</li></ul>
-      <h4>住戸内</h4>
-      <ul class="checklist"><li>キッチン：特種60℃防水型</li><li>押し入れ：1種70℃</li><li>廊下・居室：光電式</li></ul>
-      <h3>PBLの調査</h3>
-      <ul class="checklist"><li>発信機：歩行距離50m以内、高さ0.8〜1.5m</li><li>表示灯：夜間視認性・防水性</li><li>ベル：音圧90dB以上、死角の有無</li></ul>
-      <h3>写真記録（必須）</h3>
-      <ul class="checklist"><li>中継ボックス内部</li><li>受信機・表示灯・ベル</li><li>バッテリ</li><li>住戸内の配線ルート</li></ul>
-    </div>
-  </div>
-</div>
-
-<!-- ============ FIRE MANUAL ============ -->
-<div class="tab-content" id="tab-fire-manual">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><a onclick="showTab('fire-alarm')">自動火災報知設備</a><span class="sep">></span><span>設置マニュアル</span></div>
-  <div class="content-card">
-    <div class="card-header"><div class="card-header-icon">&#128214;</div><div class="card-header-text"><h3>設置マニュアル</h3><div class="card-meta">Panasonic シンプルP-1シリーズ</div></div></div>
-    <div class="card-body" style="text-align:center;">
-      <p>新入社員向けにステップバイステップで解説しています。</p>
-      <a href="manual-intercom-fire-alarm.html" class="action-btn action-btn-primary" style="display:inline-flex;width:auto;padding:.7rem 2rem;margin-top:.4rem;">&#128214; 設置マニュアルを見る</a>
-      <div class="dl-btn-group" style="justify-content:center;margin-top:.8rem;">
-        <a class="dl-btn" href="インターホン・自動火災報知設備_設置マニュアル.pptx" download>&#128196; PowerPoint</a>
-        <a class="dl-btn" href="インターホン・自動火災報知設備_設置マニュアル.md" download>&#128196; Markdown</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ============ ELECTRIC LOCK ============ -->
-<div class="tab-content" id="tab-electric-lock">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><span>電気錠</span></div>
-  <div class="article-section">
-    <div class="article-header"><h2>電気錠</h2></div>
-    <div class="article-body">
-      <p>集合玄関機が設置されているマンションにはオートロック設備が付随しており、自動ドアが電気錠によって施解錠されています。電気錠に不調があった場合、機器更新の依頼を受けることがあります。</p>
-
-      <h3>1. 現場調査の仕方</h3>
-      <ul>
-        <li>電気錠がついている扉の<strong>バックセット</strong>（戸先から錠前のセンター）/<strong>扉圧</strong>（文字通り扉の厚み）を計る必要があります</li>
-        <li>こちらの寸法が不鮮明だと、そもそも収まらなかったりシリンダー自体が短い/長すぎがおこってしまうので注意が必要です</li>
-        <li>扉圧については、扉の下部から計測したほうが正確に測ることができるそうです（めし合わせが付いているとその分大きさに差が出てしまうため）</li>
-        <li>シリンダーを既設流用した場合は、フロントパネルを外しシリンダーの固定方法を確認する必要があります</li>
-        <li>後継品番であっても仕様が変更されていることがあるので注意</li>
-      </ul>
-      <div class="info-box"><p style="margin:0;">基本的に電気錠+電気錠制御盤をセットで交換したほうが結果的に早期復旧に至ることが多い<br>（大抵の故障・不具合については錠ケースにある変換アダプタが悪さをしていることが多い）</p></div>
-
-      <h3>2. 商品の注文先について</h3>
-      <ul>
-        <li>基本的に電気錠については<strong>中野電気</strong>さんを使っています</li>
-        <li>あとは三建金物さんが多いです</li>
-        <li>仕切りについては中野電気が一番安く卸してくれるそうです</li>
-      </ul>
-
-      <h3>3. 施工について</h3>
-      <ul>
-        <li>鍵の取付には順番がありますので、取り外した順番とは逆に取付をおこなってください</li>
-        <li>錠前ケースは必ず扉のセンターにつくようにすること</li>
-        <li>取っ手は取付後に実際に動かしてスムーズに動くか、ラッチがちゃんと動作するかを確認すること</li>
-        <li>シリンダーの取付がピンの場合は最後ピンが飛び出ないようにドライバーの持ち手側などで押し込んでください。動かないように取付をする必要がありますが、締め込み過ぎると動きが悪くなる時があります。そのような時は微調整で締めて下さい</li>
-      </ul>
-
-      <h3>4. 電気錠制御装置</h3>
-      <p>基本的にTSCAPではアートさんの機器を入れます。また営業さんにお聞きすればトラブルを解決してくれる可能性があります。</p>
-
-      <h3>5. ロビーインターホンのキースイッチ</h3>
-      <p>インターホンには2種類の逆マスタ付のキースイッチが設置されていることが多いです。他にはノンタッチシステムを導入しているマンション様が増えてきました。</p>
-
-      <div style="display:flex;flex-direction:column;gap:.4rem;margin:1rem 0;">
-        <a class="action-btn action-btn-primary" onclick="showTab('electric-lock-tk5lt')">&#128273; TK5LT 操作マニュアル</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ============ ELECTRIC LOCK TK5LT ============ -->
-<div class="tab-content" id="tab-electric-lock-tk5lt">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><a onclick="showTab('electric-lock')">電気錠</a><span class="sep">></span><span>TK5LT操作</span></div>
-  <div class="article-section">
-    <div class="article-header"><h2>電気錠「TK5LT」について</h2><div class="article-meta">管理モード・操作方法・カード登録</div></div>
-    <div class="article-body">
-      <p>「設定モードレスえ」は室内側の電池カバーを取はずして設定ボタンを押押しする。その後保持されているカードが削除解除を入力させ、登録認識を入れて設定を行える。</p>
-
-      <h3>管理モードについて</h3>
-      <p>共通設定や個別設定およびカードの登録の際に管理モードで利用するモード設定がありますので下記で整理する。</p>
-      <div class="info-box">
-        <p style="margin:0;"><strong>交信時の大原則：</strong>設定時やカード登録の際はICカード側の一品を持ち合わせること。なくすと全登録カードを再登録になる</p>
-      </div>
-
-      <h4>ICF変更の仕方について</h4>
-      <ul>
-        <li><strong>種別1</strong>：設定モード#2032 → 通報接点ID 0/1→指示ード（3233秒）<br>フロント側の制御方式の設定に合致する方法でモードを下げる</li>
-        <li><strong>種別2</strong>：設定モード#2032 → 通報接点ID（GK2(A)→ カード枚数：032枚）<br>モード#2に該当配線完GOLD設定で管理する</li>
-        <li><strong>種別3</strong>：設定モード#2032 → 通報接点S2 → 設定FCKN →一時解除<br>A×、鳥居金物→設定 →上記見→関連、エンストシステムの操作に配慮して管理カード、鳥居金を登録する</li>
-      </ul>
-
-      <h3>使用開始前準備</h3>
-      <ul>
-        <li>システム設定</li>
-        <li>カード利用設定のモード設定</li>
-        <li>設定モードのON/OFF案内</li>
-        <li>管理特別設定の確認</li>
-        <li>登録（設定モードにてコマンド操作にて開始）</li>
-        <li>テンキー利用者専用の確認設定</li>
-        <li>ユーザー側のカード設定内容の管理</li>
-        <li>コンシュ / テスト確認の管理</li>
-      </ul>
-
-      <h3>操作方法</h3>
-      <h4>室外側からの解錠操作（カード）</h4>
-      <ol>
-        <li>設定ボタンを8〜9 秒 押し 設定切替シグナルを24秒間キープする</li>
-        <li>1に続いて1〜3の手順で「1」キーのピタリをタッチの合図を入力</li>
-        <li>正常到達以降にユーザーカードをリーダー部にかざす</li>
-        <li>2-1 カード設定</li>
-      </ol>
-
-      <h4>室外側からの解錠操作（暗証番号）</h4>
-      <ul>
-        <li>設定リーダー部の正面に設定ボタンを1秒キープ</li>
-        <li>設定モードへの直接カード登録にて認証確認</li>
-      </ul>
-
-      <h3>連続解錠について</h3>
-      <p>現時点での解錠方法を接続することにより連続するために何分間の解錠ができるかについてです。</p>
-      <h4>カード使用</h4>
-      <ul>
-        <li>設定リーダー部の正面ボタンを3秒以上かけ、半レッド確認キュウシグナルにかざす</li>
-        <li>正常到達後にキーカードをかざします。以上で解除します</li>
-      </ul>
-      <h4>暗証番号使用</h4>
-      <ul>
-        <li>設定リーダー部の正面ボタンを3秒キープ側、</li>
-        <li>正常解錠確認</li>
-        <li>設定番号アミダ設定リーダーを通す方向前に確認</li>
-      </ul>
-
-      <h3>電池切れで解錠操作が出来なくなった時</h3>
-      <ul>
-        <li>リーダー側の正面自体は電池ではないので（ドライ一つなので）</li>
-        <li>非常設定配列を用いて非常時連続確認を行います</li>
-      </ul>
-
-      <h3>非常電源での解錠方法</h3>
-      <ol>
-        <li>外側から確認します</li>
-        <li>シリンダーカバーの下にあるチェック端子に、+9V高電圧予備電を押し当てる</li>
-        <li>3の ドア別のチェックにて継続確認として下さい。正常確認後確認に対しては復帰しませんのでカードを再かざしすること</li>
-      </ol>
-
-      <h3>日時設定とその他機能設定について</h3>
-      <ul>
-        <li>設定番号S7</li>
-        <li>年、月、日、曜日の設定</li>
-        <li>日本時刻7けた入力します。20260615 20をスキップ</li>
-        <li>ファイルF1N</li>
-      </ul>
-
-      <h3>登録できるカード枚数</h3>
-      <ul>
-        <li>設定番号 G1 ITON DTOFF</li>
-        <li>SH仕様だと管理個別含め全て大鍵で 3〜4万回程度接近で交換になります</li>
-        <li>設定番号 G4</li>
-        <li>工程指定0000にて記録</li>
-      </ul>
-      <p>取入門で登録可能です。0 5 14</p>
-    </div>
-  </div>
-</div>
-
-<!-- ============ LIGHTING ============ -->
-<div class="tab-content" id="tab-lighting">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><span>照明器具</span></div>
-  <div class="content-card">
-    <div class="card-header"><div class="card-header-icon">&#128161;</div><div class="card-header-text"><h3>照明器具 &#8212; 種類 / 資料 / 施工</h3><div class="card-meta">室内全般・共用部の照明設備</div></div></div>
-    <div class="card-body">
-      <p>室内全般・共用部・各戸内の配備照明器具に関する資料をまとめてあります。包括提案・更新工事・不具合対応に必要な機器情報を含みます。</p>
-      <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin:.8rem 0;">
-        <a class="action-btn action-btn-primary action-btn-sm" onclick="showTab('lighting')">灯具品名の知識</a>
-        <a class="action-btn action-btn-primary action-btn-sm" onclick="showTab('lighting-construction')">照明の施工について</a>
-        <a class="action-btn action-btn-outline action-btn-sm" onclick="showTab('lighting-survey')">現場調査</a>
-      </div>
-    </div>
-  </div>
-  <div class="section-header"><span class="section-icon">&#128161;</span><h2>マンションリニューアル下敷く（優先する知識習慣について）</h2></div>
-  <div class="product-grid">
-    <div class="product-card"><div class="card-img">&#128298;</div><div class="card-info"><h3>ベースライト</h3><div class="card-sub">室内全体を均一に照らすメイン照明<br>蛍光灯灯器具→LED一体型が主流</div><span class="card-badge">リニューアル重要</span></div></div>
-    <div class="product-card"><div class="card-img">&#128308;</div><div class="card-info"><h3>ダウンライト</h3><div class="card-sub">天井に埋め込み小型照明<br>径:φ100/φ125/φ150が多い</div><span class="card-badge">開口径確認必須(SB/SG)</span></div></div>
-    <div class="product-card"><div class="card-img">&#128309;</div><div class="card-info"><h3>シーリング</h3><div class="card-sub">住宅の居間照明で最も一般的<br>引掛シーリングにより取付</div><span class="card-badge">引掛シーリングの水布</span></div></div>
-    <div class="product-card"><div class="card-img">&#128310;</div><div class="card-info"><h3>ブラケット</h3><div class="card-sub">廊下・通路・共用部の壁面照明<br>壁に直接取り付けるFLタイプ</div><span class="card-badge">壁材ビッチ(ビス位置)確認</span></div></div>
-    <div class="product-card"><div class="card-img">&#127795;</div><div class="card-info"><h3>庭園灯</h3><div class="card-sub">庭面・アプローチの走本照明<br>低温型(12V)タイプも有</div><span class="card-badge">防水対応</span></div></div>
-    <div class="product-card"><div class="card-img">&#127763;</div><div class="card-info"><h3>外灯</h3><div class="card-sub">駐車場・通路・建物外部<br>防雨・防湿型、壁付・ブラケット型</div><span class="card-badge">防水等級確認</span></div></div>
-    <div class="product-card"><div class="card-img">&#128680;</div><div class="card-info"><h3>防犯灯</h3><div class="card-sub">防犯照明の自動制御照明<br>人感センサー内蔵、LED一体型が主流</div><span class="card-badge">センサー連動</span></div></div>
-    <div class="product-card"><div class="card-img">&#128267;</div><div class="card-info"><h3>バッテリー盤(シーケ)</h3><div class="card-sub">バッテリー内蔵<br>20分/30分型</div><span class="card-badge">点検口の必要性確認</span></div></div>
-    <div class="product-card"><div class="card-img">&#128506;</div><div class="card-info"><h3>汎用灯</h3><div class="card-sub">建物詳解を充実させる灯<br>A認証低位置、省力サイズ決定</div><span class="card-badge">設置場所確認</span></div></div>
-  </div>
-</div>
-
-<!-- ============ LIGHTING CONSTRUCTION ============ -->
-<div class="tab-content" id="tab-lighting-construction">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><a onclick="showTab('lighting')">照明器具</a><span class="sep">></span><span>施工について</span></div>
-  <div class="article-section">
-    <div class="article-header"><h2>照明の施工について</h2></div>
-    <div class="article-body">
-      <h3>ベースライト（蛍灯・埋込）</h3>
-      <h4>施工手順</h4>
-      <ul><li>既設器具の撤去（安定器・配線の脈線全取得）</li><li>天井開口寸法の確認</li><li>新規器具の直付ビッチ確認</li><li>結線接続（WAGO端子）</li><li>器質確認→点灯確認</li></ul>
-      <h4>注意点</h4>
-      <ul><li>LED一体型は器具ごと交換</li><li>天井開口が変わらない場合はアダプタ類を給付</li><li>器安定の拡張はNG（部付費・電気用品の認制）</li></ul>
-
-      <h3>ダウンライト</h3>
-      <h4>施工手順</h4>
-      <ul><li>既設器具を外す</li><li>開口寸法（φ100/125/150）を測定</li><li>天井裏のクリアランスを確認</li><li>SB/SG対応の判断を確認</li><li>新規器具を差し込み→バネは→点灯確認</li></ul>
-      <h4>注意点</h4>
-      <ul><li>開口寸法が変動禁止</li><li>天井裏に耐場板等がある場所は落差を確保</li><li>断熱材が密着する場合はSB/SG対応品を選択</li></ul>
-
-      <h3>ブラケット</h3>
-      <h4>施工手順</h4>
-      <ul><li>既設器具の撤去</li><li>壁内配線の体制確認</li><li>壁材ビッチ（ビス位置）確認</li><li>新規器具の確定→点灯確認</li></ul>
-      <h4>注意点</h4>
-      <ul><li>器具サイズが小さいと下地が露出する</li><li>防湿型はパッキン本処に注意</li><li>壁内配線が未完工している場合は増設が必要</li></ul>
-
-      <h3>シーリングライト</h3>
-      <h4>施工手順</h4>
-      <ul><li>引掛シーリングの体制確認</li><li>本体・照付がある場所内を交換</li><li>器具を取付→点灯確認</li></ul>
-      <h4>注意点</h4>
-      <ul><li>引掛シーリングの重量軽則</li><li>外付タイプはビス位置も必ず確認</li><li>天井材の体質下安定に注意</li></ul>
-
-      <h3>ポーチ灯・外灯（防雨型）</h3>
-      <h4>施工手順</h4>
-      <ul><li>既設器具撤去</li><li>防水パッキンの体制確認</li><li>新規器具の確定→点灯確認</li></ul>
-      <h4>注意点</h4>
-      <ul><li>ポーチ灯・外灯は防雨型（IP44〜）</li><li>パッキン本処の確認</li><li>水入り跡の確認</li><li>外の配管と壁面水引と既設内配経路は確認</li></ul>
-
-      <h3>庭園灯</h3>
-      <h4>施工手順</h4>
-      <ul><li>埋込灯サイズを確認</li><li>壁材ビッチ（ビス位置）確認</li><li>器質確認（強制磁証）</li><li>点灯証確→外灯点の跡確認</li></ul>
-      <h4>注意点</h4>
-      <ul><li>器制器具対象</li><li>充灯型をの外御消理</li><li>万有見定の跡位置に注意無理</li></ul>
-
-      <h3>不具合修理（原因と対策）</h3>
-      <h4>点灯しない</h4>
-      <p><strong>原因：</strong>器質照明、安定器配備、LED電源残件</p>
-      <p><strong>対策：</strong>器質交換（LED一体型は器具ごと交換）</p>
-      <h4>フリッカー（チラつき）</h4>
-      <p><strong>原因：</strong>器質本化、LED電源の系倒</p>
-      <p><strong>対策：</strong>器質交換、器質本処の証灯確認</p>
-      <h4>水入り</h4>
-      <p><strong>原因：</strong>防水パッキン本化、壁内配線の水化、器質の防水性能不安</p>
-      <p><strong>対策：</strong>器質交換、壁内配線の排除確認、防湿型器具へ交換</p>
-      <h4>センサー誤作動</h4>
-      <p><strong>原因：</strong>向き・範囲不良、位・風・害別、雷割の連勝通</p>
-      <p><strong>対策：</strong>場合連結、取時位者変、センサー交換</p>
-
-      <h3 class="highlight">注意点（重要）</h3>
-      <ul>
-        <li>LED器具は部署ユニット交換本体（器具ごと交換）</li>
-        <li>防湿型はパッキン本処水方の確認</li>
-        <li>安定制御はバッテリ寿命交位に注意</li>
-        <li>誘導灯は部所位に確認（つく新要雲あり）</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- ============ LIGHTING SURVEY ============ -->
-<div class="tab-content" id="tab-lighting-survey">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><a onclick="showTab('lighting')">照明器具</a><span class="sep">></span><span>現場調査</span></div>
-  <div class="article-section">
-    <div class="article-header"><h2>現場調査</h2><div class="article-meta">照明設備の更新工事・不具合対応のための現場調査フロー</div></div>
-    <div class="article-body">
-      <p>照明設備の更新工事・不具合対応のための現場調査のフローです。寸法・天井裏スペース・器具品番・配光など、手戻りが生じない下調べを整理しています。</p>
-
-      <h3>事前確認（現場に行く前）</h3>
-      <ul class="checklist">
-        <li>図面（照明配置図面・消機図面）</li>
-        <li>器具仕様の型番</li>
-        <li>天井材（石膏ボード/スラブ直付）</li>
-        <li>安定制限・進制の問題 → 一番について、新しく発注して交換する場合のために、申込みしたは安定制限別個別安器パッテリある方は使える対応を行う</li>
-        <li>それでも製造で中止していたものもあるなら発注できる方式、工程の連関交渉21ございます</li>
-        <li>センサー連動の有無を確認します</li>
-      </ul>
-
-      <h3>現場調査（基本項目）</h3>
-      <h4>器材寸法・開口寸法</h4>
-      <ul class="checklist">
-        <li>ダウンライト：φ100/φ125/φ150　既設値の大きい機台の跡器をつぶす為に確認する</li>
-        <li>ベースライト：器具の高さ・幅・開口寸法　リニューアル専用を選定する場合もある</li>
-        <li>シーリング：引掛シーリングの種類（角型/丸型）　重さの制限もあるもの</li>
-      </ul>
-      <h4>天井裏スペース</h4>
-      <ul class="checklist">
-        <li>器具の収まり入る余裕あり</li>
-        <li>断熱材の覆域（SB&SG対応の確認）</li>
-        <li>配線ルート（FF管/CD管/露出）</li>
-      </ul>
-      <h4>電源基盤</h4>
-      <ul class="checklist">
-        <li>スイッチ盤</li>
-        <li>センサー連動（人感・照度）</li>
-        <li>安定器型（安定制限型）</li>
-        <li>誘導灯の処置調定</li>
-      </ul>
-      <h4>防水・防湿</h4>
-      <ul class="checklist">
-        <li>ポーチ灯・外灯は防雨型（IP44〜）</li>
-        <li>パッキン本処の確認</li>
-        <li>水入り跡の確認</li>
-        <li>外の配管と壁面水引と既設内配経路は確認してそこで交換ができないか確認します</li>
-      </ul>
-
-      <h3>写真記録（必須）</h3>
-      <ul class="checklist">
-        <li>器具全体</li>
-        <li>型番銘（判置出器用照明）</li>
-        <li>配線・端子</li>
-        <li>開口の配（メジャーを当てて下撮り必須）</li>
-        <li>木太淵型（庇・水入り・取り分）</li>
-        <li>引掛シーリングの形状</li>
-      </ul>
-
-      <div class="section-header" style="margin-top:1.5rem;"><span class="section-icon">&#128247;</span><h2>写真の撮影箇所</h2></div>
-      <div class="photo-grid">
-        <div class="photo-card"><div class="photo-placeholder">&#128247;</div><div class="photo-caption">品番が分かれば撮影しておくと後で安心できます</div></div>
-        <div class="photo-card"><div class="photo-placeholder">&#128161;</div><div class="photo-caption">ダウンライト等の電球は本体の文字が消えているときがあるので、球で確認をする</div></div>
-        <div class="photo-card"><div class="photo-placeholder">&#128290;</div><div class="photo-caption">ダウンライト・非常灯など円形の器具は中々で計る感覚が分からなければパネルを外して実寸を確認する方法もあり</div></div>
-        <div class="photo-card"><div class="photo-placeholder">&#128206;</div><div class="photo-caption">外灯 ポール径<br>くびれがある場合は細いほうを記録する</div></div>
-        <div class="photo-card"><div class="photo-placeholder">&#128295;</div><div class="photo-caption">外灯の柱(裏にポール品番ある場合あり)</div></div>
-        <div class="photo-card"><div class="photo-placeholder">&#9889;</div><div class="photo-caption">外灯の安定器</div></div>
-        <div class="photo-card"><div class="photo-placeholder">&#128994;</div><div class="photo-caption">フットライト<br>新設器具はこの大きさがないため注意</div></div>
-      </div>
-
-      <h3>よくある不具合と原因</h3>
-      <ul>
-        <li>点灯不良：器質照明 / 安定器配備 / LED電源残件</li>
-        <li>フリッカー：器質本化</li>
-        <li>水入り：防水本体不良・パッキン劣化</li>
-        <li>センサー誤作動：向き・範囲・害別</li>
-        <li>器質落下：ビス抜け・下地不安</li>
-      </ul>
-
-      <h3>壁（PNG）貼付スペース</h3>
-      <ul class="checklist">
-        <li>ダウンライト開口圧比較</li>
-        <li>天井裏スペース確認用</li>
-        <li>センサー連動用間</li>
-      </ul>
-
-      <h3 class="highlight">注意点（重要）</h3>
-      <ul>
-        <li>LED器具は部署ユニット交換本体（器具ごと交換）</li>
-        <li>防湿型はパッキン本処水方の確認</li>
-        <li>安定制御はバッテリ寿命交位に注意</li>
-        <li>誘導灯は部所位に確認（つく新要雲あり）</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- ============ CATALOG ============ -->
-<div class="tab-content" id="tab-catalog">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><span>機器カタログリンク</span></div>
-  <div class="content-card">
-    <div class="card-header"><div class="card-header-icon">&#128218;</div><div class="card-header-text"><h3>機器カタログリンク</h3><div class="card-meta">各メーカーの機器カタログへのリンク集</div></div></div>
-    <div class="card-body">
-      <p>各メーカーの機器カタログへのリンク集です。</p>
-      <div class="info-box"><p style="margin:0;">コンテンツが追加され次第、こちらに掲載いたします。</p></div>
-    </div>
-  </div>
-</div>
-
-<!-- ============ FAQ ============ -->
-<div class="tab-content" id="tab-faq">
-  <div class="breadcrumb"><a onclick="showTab('home')">ホーム</a><span class="sep">></span><span>FAQ</span></div>
-  <div class="content-card">
-    <div class="card-header"><div class="card-header-icon">&#10067;</div><div class="card-header-text"><h3>よくある質問（FAQ）</h3><div class="card-meta">全カテゴリ横断</div></div></div>
-    <div class="card-body">
-      <div class="header-search" style="max-width:100%;margin-bottom:1rem;">
-        <span class="search-icon">&#128269;</span>
-        <input type="text" placeholder="FAQを検索..." id="faqSearch" oninput="filterFaq()" autocomplete="off">
-      </div>
-
-      <h3>インターホン</h3>
-      <div class="faq-item"><h4>Q. 配線のケーブル種類がわかりません</h4><p>施工図面に記載されています。感知器回線にはHP（耐熱ペア線）、インターホン回線にはFCPV（ビニル被覆ペア線）等を使用。不明な場合は上長に確認してください。</p></div>
-      <div class="faq-item"><h4>Q. 終端抵抗器はどこに付けますか？</h4><p>各回線の最後の機器（一番遠い感知器等）に取り付けます。受信機から見て最も末端の機器です。抵抗値は10kΩです。</p></div>
-      <div class="faq-item"><h4>Q. 配線を間違えた場合は？</h4><p><strong>まず電源を切ってください。</strong>その後、結線表と照らし合わせて正しい端子に接続し直してください。</p></div>
-
-      <h3>自動火災報知設備</h3>
-      <div class="faq-item"><h4>Q. 感知器の種類が複数ありますが、どう使い分けますか？</h4><p>煙感知器は居室・廊下に、熱感知器はキッチン・浴室付近に使用します。施工図面の指示に従ってください。</p></div>
-      <div class="faq-item"><h4>Q. 「断線」表示が出た場合は？</h4><p>該当回線の配線を1本ずつ確認してください。配線が切れている、端子接続が外れている可能性があります。</p></div>
-      <div class="faq-item"><h4>Q. 誤報が出る場合の対処は？</h4><p>感知器周辺の環境（蒸気・ほこり等）を確認。終端抵抗器（10kΩ）が取り付けてあるか確認してください。</p></div>
-
-      <h3>電気錠</h3>
-      <div class="faq-item"><h4>Q. 電気錠の注文先は？</h4><p>基本的に中野電気さんを使っています。あとは三建金物さん。仕切りについては中野電気が一番安く卸してくれるそうです。</p></div>
-      <div class="faq-item"><h4>Q. 電気錠制御装置は？</h4><p>基本的にTSCAPではアートさんの機器を入れます。営業さんにお聞きすればトラブルを解決してくれる可能性があります。</p></div>
-
-      <h3>照明器具</h3>
-      <div class="faq-item"><h4>Q. LED器具の交換方法は？</h4><p>LED一体型は器具ごと交換です。部署ユニットのみの交換はできません。</p></div>
-      <div class="faq-item"><h4>Q. ダウンライトの開口寸法は？</h4><p>φ100/φ125/φ150が多いです。天井裏のSB/SG対応も確認してください。</p></div>
-
-      <h3>共通</h3>
-      <div class="faq-item"><h4>Q. 作業中に分からないことが出たら？</h4><p><strong>自己判断で作業を進めないでください。</strong>必ず上長または先輩社員に相談してください。安全に関わる設備ですので、確認を怠ると人命に関わります。</p></div>
-    </div>
-  </div>
-</div>
-
+  <div class="tab-content active" id="tab-home"></div>
+  <div class="tab-content" id="tab-intercom"></div>
+  <div class="tab-content" id="tab-intercom-ref"></div>
+  <div class="tab-content" id="tab-intercom-construction"></div>
+  <div class="tab-content" id="tab-fire-alarm"></div>
+  <div class="tab-content" id="tab-fire-equipment"></div>
+  <div class="tab-content" id="tab-fire-survey"></div>
+  <div class="tab-content" id="tab-fire-manual"></div>
+  <div class="tab-content" id="tab-electric-lock"></div>
+  <div class="tab-content" id="tab-electric-lock-tk5lt"></div>
+  <div class="tab-content" id="tab-lighting"></div>
+  <div class="tab-content" id="tab-lighting-construction"></div>
+  <div class="tab-content" id="tab-lighting-survey"></div>
+  <div class="tab-content" id="tab-catalog"></div>
+  <div class="tab-content" id="tab-faq"></div>
 </div>
 
 <!-- ===== BACK TO TOP ===== -->
@@ -1137,6 +575,7 @@ html { scroll-behavior: smooth; }
   <p>&copy; 2026 TSCアクセス・プロ 支援ポータルサイト</p>
 </footer>
 
+<script src="data.js"></script>
 <script>
 /* ===== Sidebar ===== */
 function toggleSidebar() {
@@ -1219,30 +658,13 @@ function renderFavPanel() {
 }
 
 /* ===== Search ===== */
-var searchIndex = [
-  { tab:'home', icon:'&#127968;', title:'ホーム', path:'ホーム', keywords:'ホーム お知らせ カレンダー カテゴリ' },
-  { tab:'intercom', icon:'&#128222;', title:'インターホン', path:'インターホン', keywords:'インターホン パナソニック ドアホン クラウシュ ウィンティア Iシリーズ Dシリーズ テレビドアホン マンションHA' },
-  { tab:'intercom-ref', icon:'&#128209;', title:'結線時参考資料', path:'インターホン > 結線', keywords:'結線 配線 端子 アイホン DJ1 DJ2 JL JC VOL減衰 トラブル パナカラー' },
-  { tab:'intercom-construction', icon:'&#128736;', title:'インターホン施工', path:'インターホン > 施工', keywords:'施工 シンプルP-1 設置 マニュアル 新入社員 工具' },
-  { tab:'fire-alarm', icon:'&#128293;', title:'自動火災報知設備', path:'自動火災報知設備', keywords:'火災 自火報 共同住宅 住戸用 特例 220号 消防 耐火' },
-  { tab:'fire-equipment', icon:'&#128295;', title:'自火報の機器', path:'自火報 > 機器', keywords:'P型1級 受信機 感知器 差動式 定温式 光電式 PBL ベル 発信機 GP3級 鳴動' },
-  { tab:'fire-survey', icon:'&#128269;', title:'自火報の現場調査', path:'自火報 > 現場調査', keywords:'現場調査 チェックリスト 中継ボックス 系統図 バッテリ 写真' },
-  { tab:'fire-manual', icon:'&#128214;', title:'設置マニュアル', path:'自火報 > マニュアル', keywords:'マニュアル 設置 シンプルP-1 端子接続 トラブル FAQ 安全' },
-  { tab:'electric-lock', icon:'&#128273;', title:'電気錠', path:'電気錠', keywords:'電気錠 オートロック 解錠 施錠 バックセット 扉圧 中野電気 三建金物 アート 錠前 シリンダー' },
-  { tab:'electric-lock-tk5lt', icon:'&#128273;', title:'TK5LT操作', path:'電気錠 > TK5LT', keywords:'TK5LT カード 暗証番号 連続解錠 電池切れ 非常電源 管理モード 登録' },
-  { tab:'lighting', icon:'&#128161;', title:'照明器具', path:'照明器具', keywords:'照明 ベースライト ダウンライト シーリング ブラケット 庭園灯 外灯 防犯灯 バッテリー盤 LED' },
-  { tab:'lighting-construction', icon:'&#128736;', title:'照明の施工', path:'照明 > 施工', keywords:'施工 ベースライト ダウンライト ブラケット シーリング 防雨 WAGO LED交換 フリッカー 水入り' },
-  { tab:'lighting-survey', icon:'&#128269;', title:'照明の現場調査', path:'照明 > 現場調査', keywords:'現場調査 寸法 天井裏 開口 センサー 防水 パッキン 写真 撮影' },
-  { tab:'catalog', icon:'&#128218;', title:'機器カタログ', path:'カタログ', keywords:'カタログ メーカー リンク' },
-  { tab:'faq', icon:'&#10067;', title:'FAQ', path:'FAQ', keywords:'FAQ 質問 回答 トラブル 配線 感知器 電気錠 LED' }
-];
-
 function handleSearch(e) {
   var q = document.getElementById('searchInput').value.trim().toLowerCase();
   var el = document.getElementById('searchResults');
   if (!q) { el.classList.remove('open'); return; }
   var matches = [];
-  searchIndex.forEach(function(item) {
+  var si = SITE_DATA.searchIndex;
+  si.forEach(function(item) {
     var hay = (item.title + ' ' + item.keywords + ' ' + item.path).toLowerCase();
     if (hay.indexOf(q) !== -1) {
       var i = hay.indexOf(q), s = Math.max(0, i - 12);
@@ -1257,7 +679,7 @@ function handleSearch(e) {
       if (txt.indexOf(q) !== -1) {
         var idx = txt.indexOf(q), sn = tab.textContent.substring(Math.max(0,idx-15), idx+q.length+25);
         sn = sn.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')','gi'),'<mark>$1</mark>');
-        var found = searchIndex.find(function(si) { return si.tab === tid; });
+        var found = si.find(function(s) { return s.tab === tid; });
         if (found) matches.push({ item: found, snippet: '...' + sn + '...' });
       }
     });
@@ -1289,6 +711,197 @@ function filterFaq() {
     item.style.display = !q || item.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
   });
 }
+
+/* ===== Helper: render article sections ===== */
+function renderSections(sections) {
+  var h = '';
+  sections.forEach(function(s) {
+    if (s.heading) h += '<h3' + (s.isHighlight ? ' class="highlight"' : '') + '>' + s.heading + '</h3>';
+    if (s.subheading) h += '<h4>' + s.subheading + '</h4>';
+    if (s.paragraphs) s.paragraphs.forEach(function(p) { h += '<p>' + p + '</p>'; });
+    if (s.list) { h += '<ul>'; s.list.forEach(function(li) { h += '<li>' + li + '</li>'; }); h += '</ul>'; }
+    if (s.orderedList) { h += '<ol>'; s.orderedList.forEach(function(li) { h += '<li>' + li + '</li>'; }); h += '</ol>'; }
+    if (s.checklist) { h += '<ul class="checklist">'; s.checklist.forEach(function(li) { h += '<li>' + li + '</li>'; }); h += '</ul>'; }
+    if (s.table) {
+      h += '<div class="table-wrapper"><table class="data-table"><tr>';
+      s.table.headers.forEach(function(th) { h += '<th>' + th + '</th>'; });
+      h += '</tr>';
+      s.table.rows.forEach(function(row) { h += '<tr>'; row.forEach(function(td) { h += '<td>' + td + '</td>'; }); h += '</tr>'; });
+      h += '</table></div>';
+    }
+    if (s.info) h += '<div class="info-box"><p style="margin:0;">' + s.info + '</p></div>';
+    if (s.warning) h += '<div class="info-box warning"><p class="highlight" style="margin:0;">' + s.warning + '</p></div>';
+    if (s.subsections) s.subsections.forEach(function(sub) {
+      if (sub.subheading) h += '<h4>' + sub.subheading + '</h4>';
+      if (sub.paragraphs) sub.paragraphs.forEach(function(p) { h += '<p>' + p + '</p>'; });
+      if (sub.list) { h += '<ul>'; sub.list.forEach(function(li) { h += '<li>' + li + '</li>'; }); h += '</ul>'; }
+      if (sub.orderedList) { h += '<ol>'; sub.orderedList.forEach(function(li) { h += '<li>' + li + '</li>'; }); h += '</ol>'; }
+      if (sub.checklist) { h += '<ul class="checklist">'; sub.checklist.forEach(function(li) { h += '<li>' + li + '</li>'; }); h += '</ul>'; }
+    });
+  });
+  return h;
+}
+
+/* ===== Render all pages from SITE_DATA ===== */
+function renderPages() {
+  var D = SITE_DATA;
+
+  // HOME
+  var home = '<div class="hero-section"><span class="hero-badge">KNOWLEDGE PORTAL</span>' +
+    '<h1><span class="brand">TSC</span>アクセス・プロ<br>支援ポータルサイト</h1>' +
+    '<p class="hero-desc">設備工事に関するナレッジを集約。インターホン・自動火災報知設備・電気錠・照明の技術情報をいつでも確認できます。</p></div>';
+  home += '<div class="quick-stats">';
+  D.stats.forEach(function(s) { home += '<div class="stat-card"><div class="stat-num">' + s.num + '</div><div class="stat-label">' + s.label + '</div></div>'; });
+  home += '</div>';
+  home += '<div class="section-header"><span class="section-icon">&#128204;</span><h2>カテゴリから探す</h2></div><div class="category-grid">';
+  D.categories.forEach(function(c) { home += '<a class="cat-card" onclick="showTab(\'' + c.tab + '\')"><span class="cat-icon">' + c.icon + '</span><div class="cat-name">' + c.name.replace('\n','<br>') + '</div><div class="cat-count">' + c.count + '</div></a>'; });
+  home += '</div>';
+  home += '<div class="content-card" style="margin-top:1rem;"><div class="card-header"><div class="card-header-icon">&#128227;</div><div class="card-header-text"><h3>お知らせ</h3><div class="card-meta">最新の更新情報</div></div></div><div class="card-body"><div class="announce-list">';
+  D.announcements.forEach(function(a) { home += '<div class="announce-item"><span class="announce-date">' + a.date + '</span><span class="announce-tag ' + a.tag + '">' + (a.tag === 'new' ? 'NEW' : '更新') + '</span><span class="announce-text">' + a.text + '</span></div>'; });
+  home += '</div></div></div>';
+  home += '<div class="content-card"><div class="card-header"><div class="card-header-icon">&#128197;</div><div class="card-header-text"><h3>共有カレンダー</h3></div></div><div class="card-body"><div class="calendar-placeholder"><div class="cal-icon">&#128197;</div><p>Googleカレンダーの埋め込みエリア</p></div></div></div>';
+  document.getElementById('tab-home').innerHTML = home;
+
+  // INTERCOM
+  var ic = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><span>インターホン</span>' +
+    '<span style="margin-left:auto;cursor:pointer;font-size:.8rem;" onclick="toggleFav(\'intercom\',\'&#128222;\',\'インターホン\')">&#9734; お気に入り</span></div>';
+  ic += '<div class="content-card"><div class="card-header"><div class="card-header-icon">&#128222;</div><div class="card-header-text"><h3>マンションHAシステム インターホン</h3><div class="card-meta">Panasonic マンション用インターホン設備</div></div></div><div class="card-body">';
+  ic += '<p>弊社で提案している基幹商品としてPanasonic社製のマンション用インターホン設備が挙げられます。</p>';
+  ic += '<div style="display:flex;flex-direction:column;gap:.4rem;margin:.8rem 0;"><a class="action-btn action-btn-primary" onclick="showTab(\'intercom-ref\')">&#128209; 結線時参考資料</a><a class="action-btn action-btn-outline" onclick="showTab(\'intercom-construction\')">&#128736; 施工マニュアル</a></div>';
+  ic += '<div class="info-box"><p style="margin:0;">弊社はパナソニック社の協力会社として実績があります。インターホン/自動火災報知設備が二本柱です。</p></div></div></div>';
+  ic += '<div class="section-header"><span class="section-icon">&#128187;</span><h2>シリーズ一覧</h2></div><div class="product-grid">';
+  D.intercomSeries.forEach(function(p) { ic += '<div class="product-card"><div class="card-img">' + p.icon + '</div><div class="card-info"><h3>' + p.name + '</h3><div class="card-sub">' + p.sub + '</div><span class="card-badge">' + p.badge + '</span></div></div>'; });
+  ic += '</div>';
+  ic += '<div class="dl-btn-group" style="margin-top:1rem;"><a class="dl-btn" href="インターホン・自動火災報知設備_設置マニュアル.pptx" download>&#128196; PPTX</a><a class="dl-btn" href="インターホン・自動火災報知設備_設置マニュアル.md" download>&#128196; Markdown</a></div>';
+  document.getElementById('tab-intercom').innerHTML = ic;
+
+  // INTERCOM REF
+  var ir = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><a onclick="showTab(\'intercom\')">インターホン</a><span class="sep">></span><span>結線時参考資料</span></div>';
+  ir += '<div class="article-section"><div class="article-header"><h2>' + D.intercomRef.title + '</h2><div class="article-meta">' + D.intercomRef.meta + '</div></div><div class="article-body">';
+  ir += renderSections(D.intercomRef.sections);
+  ir += '</div></div>';
+  document.getElementById('tab-intercom-ref').innerHTML = ir;
+
+  // INTERCOM CONSTRUCTION
+  var iconst = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><a onclick="showTab(\'intercom\')">インターホン</a><span class="sep">></span><span>施工</span></div>';
+  iconst += '<div class="content-card"><div class="card-header"><div class="card-header-icon">&#128736;</div><div class="card-header-text"><h3>インターホン施工マニュアル</h3><div class="card-meta">Panasonic シンプルP-1シリーズ対応</div></div></div><div class="card-body">';
+  iconst += '<p>新入社員向けに専門用語の解説付きでステップバイステップで解説しています。</p>';
+  iconst += '<a href="manual-intercom-fire-alarm.html" class="action-btn action-btn-primary" style="margin-top:.6rem;">&#128214; 設置マニュアルを見る</a>';
+  iconst += '<div class="info-box" style="margin-top:.8rem;"><p style="margin:0;"><strong>収録内容：</strong>概要 / 事前準備 / 全体フロー / 10ステップの施工手順 / 端子接続表 / トラブルシューティング / FAQ / 安全注意事項</p></div>';
+  iconst += '<div class="video-placeholder"><div class="play-icon">&#9654;</div><p>施工手順の動画エリア（YouTube等の埋め込み用）</p></div>';
+  iconst += '</div></div>';
+  document.getElementById('tab-intercom-construction').innerHTML = iconst;
+
+  // FIRE ALARM
+  var fa = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><span>自動火災報知設備</span></div>';
+  fa += '<div class="content-card"><div class="card-header"><div class="card-header-icon">&#128293;</div><div class="card-header-text"><h3>' + D.fireAlarm.title + '</h3><div class="card-meta">' + D.fireAlarm.meta + '</div></div></div><div class="card-body">';
+  fa += '<p>' + D.fireAlarm.intro + '</p>';
+  fa += '<div style="display:flex;flex-direction:column;gap:.4rem;margin:.8rem 0;"><a class="action-btn action-btn-primary" onclick="showTab(\'fire-equipment\')">&#128295; 機器について</a><a class="action-btn action-btn-outline" onclick="showTab(\'fire-survey\')">&#128269; 現場調査について</a><a class="action-btn action-btn-outline" onclick="showTab(\'fire-manual\')">&#128214; 設置マニュアル</a></div>';
+  fa += renderSections(D.fireAlarm.sections);
+  if (D.fireAlarm.info) fa += '<div class="info-box"><p style="margin:0;">' + D.fireAlarm.info + '</p></div>';
+  fa += '</div></div>';
+  document.getElementById('tab-fire-alarm').innerHTML = fa;
+
+  // FIRE EQUIPMENT
+  var fe = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><a onclick="showTab(\'fire-alarm\')">自動火災報知設備</a><span class="sep">></span><span>機器について</span></div>';
+  fe += '<div class="article-section"><div class="article-header"><h2>' + D.fireEquipment.title + '</h2></div><div class="article-body">';
+  fe += renderSections(D.fireEquipment.sections);
+  fe += '</div></div>';
+  document.getElementById('tab-fire-equipment').innerHTML = fe;
+
+  // FIRE SURVEY
+  var fs = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><a onclick="showTab(\'fire-alarm\')">自動火災報知設備</a><span class="sep">></span><span>現場調査</span></div>';
+  fs += '<div class="article-section"><div class="article-header"><h2>' + D.fireSurvey.title + '</h2></div><div class="article-body">';
+  fs += renderSections(D.fireSurvey.sections);
+  fs += '</div></div>';
+  document.getElementById('tab-fire-survey').innerHTML = fs;
+
+  // FIRE MANUAL
+  var fm = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><a onclick="showTab(\'fire-alarm\')">自動火災報知設備</a><span class="sep">></span><span>設置マニュアル</span></div>';
+  fm += '<div class="content-card"><div class="card-header"><div class="card-header-icon">&#128214;</div><div class="card-header-text"><h3>設置マニュアル</h3><div class="card-meta">Panasonic シンプルP-1シリーズ</div></div></div><div class="card-body" style="text-align:center;">';
+  fm += '<p>新入社員向けにステップバイステップで解説しています。</p>';
+  fm += '<a href="manual-intercom-fire-alarm.html" class="action-btn action-btn-primary" style="display:inline-flex;width:auto;padding:.7rem 2rem;margin-top:.4rem;">&#128214; 設置マニュアルを見る</a>';
+  fm += '<div class="dl-btn-group" style="justify-content:center;margin-top:.8rem;"><a class="dl-btn" href="インターホン・自動火災報知設備_設置マニュアル.pptx" download>&#128196; PowerPoint</a><a class="dl-btn" href="インターホン・自動火災報知設備_設置マニュアル.md" download>&#128196; Markdown</a></div>';
+  fm += '</div></div>';
+  document.getElementById('tab-fire-manual').innerHTML = fm;
+
+  // ELECTRIC LOCK
+  var el = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><span>電気錠</span></div>';
+  el += '<div class="article-section"><div class="article-header"><h2>' + D.electricLock.title + '</h2></div><div class="article-body">';
+  el += '<p>' + D.electricLock.intro + '</p>';
+  el += renderSections(D.electricLock.sections);
+  el += '<div style="display:flex;flex-direction:column;gap:.4rem;margin:1rem 0;"><a class="action-btn action-btn-primary" onclick="showTab(\'electric-lock-tk5lt\')">&#128273; TK5LT 操作マニュアル</a></div>';
+  el += '</div></div>';
+  document.getElementById('tab-electric-lock').innerHTML = el;
+
+  // ELECTRIC LOCK TK5LT
+  var tk = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><a onclick="showTab(\'electric-lock\')">電気錠</a><span class="sep">></span><span>TK5LT操作</span></div>';
+  tk += '<div class="article-section"><div class="article-header"><h2>' + D.electricLockTk5lt.title + '</h2><div class="article-meta">' + D.electricLockTk5lt.meta + '</div></div><div class="article-body">';
+  tk += '<p>' + D.electricLockTk5lt.intro + '</p>';
+  tk += renderSections(D.electricLockTk5lt.sections);
+  tk += '</div></div>';
+  document.getElementById('tab-electric-lock-tk5lt').innerHTML = tk;
+
+  // LIGHTING
+  var lg = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><span>照明器具</span></div>';
+  lg += '<div class="content-card"><div class="card-header"><div class="card-header-icon">&#128161;</div><div class="card-header-text"><h3>照明器具 &#8212; 種類 / 資料 / 施工</h3><div class="card-meta">室内全般・共用部の照明設備</div></div></div><div class="card-body">';
+  lg += '<p>室内全般・共用部・各戸内の配備照明器具に関する資料をまとめてあります。包括提案・更新工事・不具合対応に必要な機器情報を含みます。</p>';
+  lg += '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin:.8rem 0;"><a class="action-btn action-btn-primary action-btn-sm" onclick="showTab(\'lighting\')">灯具品名の知識</a><a class="action-btn action-btn-primary action-btn-sm" onclick="showTab(\'lighting-construction\')">照明の施工について</a><a class="action-btn action-btn-outline action-btn-sm" onclick="showTab(\'lighting-survey\')">現場調査</a></div>';
+  lg += '</div></div>';
+  lg += '<div class="section-header"><span class="section-icon">&#128161;</span><h2>マンションリニューアル下敷く（優先する知識習慣について）</h2></div><div class="product-grid">';
+  D.lightingProducts.forEach(function(p) { lg += '<div class="product-card"><div class="card-img">' + p.icon + '</div><div class="card-info"><h3>' + p.name + '</h3><div class="card-sub">' + p.sub.replace('\n','<br>') + '</div><span class="card-badge">' + p.badge + '</span></div></div>'; });
+  lg += '</div>';
+  document.getElementById('tab-lighting').innerHTML = lg;
+
+  // LIGHTING CONSTRUCTION
+  var lc = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><a onclick="showTab(\'lighting\')">照明器具</a><span class="sep">></span><span>施工について</span></div>';
+  lc += '<div class="article-section"><div class="article-header"><h2>' + D.lightingConstruction.title + '</h2></div><div class="article-body">';
+  lc += renderSections(D.lightingConstruction.sections);
+  lc += '</div></div>';
+  document.getElementById('tab-lighting-construction').innerHTML = lc;
+
+  // LIGHTING SURVEY
+  var ls = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><a onclick="showTab(\'lighting\')">照明器具</a><span class="sep">></span><span>現場調査</span></div>';
+  ls += '<div class="article-section"><div class="article-header"><h2>' + D.lightingSurvey.title + '</h2><div class="article-meta">' + D.lightingSurvey.meta + '</div></div><div class="article-body">';
+  ls += '<p>' + D.lightingSurvey.intro + '</p>';
+  ls += renderSections(D.lightingSurvey.sections);
+  ls += '<div class="section-header" style="margin-top:1.5rem;"><span class="section-icon">&#128247;</span><h2>写真の撮影箇所</h2></div><div class="photo-grid">';
+  D.lightingSurvey.photoGuide.forEach(function(p) { ls += '<div class="photo-card"><div class="photo-placeholder">' + p.icon + '</div><div class="photo-caption">' + p.caption.replace('\n','<br>') + '</div></div>'; });
+  ls += '</div>';
+  ls += '<h3>よくある不具合と原因</h3><ul>';
+  D.lightingSurvey.troubleshooting.forEach(function(t) { ls += '<li>' + t + '</li>'; });
+  ls += '</ul>';
+  ls += '<h3>壁（PNG）貼付スペース</h3><ul class="checklist">';
+  D.lightingSurvey.photoChecklist.forEach(function(c) { ls += '<li>' + c + '</li>'; });
+  ls += '</ul>';
+  ls += '<h3 class="highlight">注意点（重要）</h3><ul>';
+  D.lightingSurvey.importantNotes.forEach(function(n) { ls += '<li>' + n + '</li>'; });
+  ls += '</ul>';
+  ls += '</div></div>';
+  document.getElementById('tab-lighting-survey').innerHTML = ls;
+
+  // CATALOG
+  var cat = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><span>機器カタログリンク</span></div>';
+  cat += '<div class="content-card"><div class="card-header"><div class="card-header-icon">&#128218;</div><div class="card-header-text"><h3>機器カタログリンク</h3><div class="card-meta">各メーカーの機器カタログへのリンク集</div></div></div><div class="card-body">';
+  cat += '<p>各メーカーの機器カタログへのリンク集です。</p>';
+  cat += '<div class="info-box"><p style="margin:0;">コンテンツが追加され次第、こちらに掲載いたします。</p></div></div></div>';
+  document.getElementById('tab-catalog').innerHTML = cat;
+
+  // FAQ
+  var fq = '<div class="breadcrumb"><a onclick="showTab(\'home\')">ホーム</a><span class="sep">></span><span>FAQ</span></div>';
+  fq += '<div class="content-card"><div class="card-header"><div class="card-header-icon">&#10067;</div><div class="card-header-text"><h3>よくある質問（FAQ）</h3><div class="card-meta">全カテゴリ横断</div></div></div><div class="card-body">';
+  fq += '<div class="header-search" style="max-width:100%;margin-bottom:1rem;"><span class="search-icon">&#128269;</span><input type="text" placeholder="FAQを検索..." id="faqSearch" oninput="filterFaq()" autocomplete="off"></div>';
+  D.faq.forEach(function(cat) {
+    fq += '<h3>' + cat.category + '</h3>';
+    cat.items.forEach(function(item) {
+      fq += '<div class="faq-item"><h4>Q. ' + item.q + '</h4><p>' + item.a + '</p></div>';
+    });
+  });
+  fq += '</div></div>';
+  document.getElementById('tab-faq').innerHTML = fq;
+}
+
+document.addEventListener('DOMContentLoaded', renderPages);
 </script>
 </body>
 </html>
