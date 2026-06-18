@@ -1,8 +1,6 @@
 Attribute VB_Name = "Module1"
 '===========================================
 ' 写真貼付マクロ
-' 選択したセル（結合セル）に写真を貼り付け、
-' セルサイズに合わせて自動リサイズします
 '===========================================
 
 Sub 写真貼付()
@@ -11,17 +9,23 @@ Sub 写真貼付()
     Dim targetCell As Range
     Dim cellLeft As Double, cellTop As Double
     Dim cellWidth As Double, cellHeight As Double
-    Dim picRatio As Double, cellRatio As Double
     Dim newWidth As Double, newHeight As Double
-    Dim offsetX As Double, offsetY As Double
+    Dim picRatio As Double
+    Dim margin As Double
+    Dim availW As Double, availH As Double
 
+    On Error Resume Next
     Set targetCell = Selection.MergeArea
+    If targetCell Is Nothing Then
+        Set targetCell = Selection
+    End If
+    On Error GoTo 0
 
     filePath = Application.GetOpenFilename( _
         FileFilter:="画像ファイル (*.jpg;*.jpeg;*.png;*.bmp;*.gif),*.jpg;*.jpeg;*.png;*.bmp;*.gif", _
         Title:="貼り付ける写真を選択してください")
 
-    If filePath = "False" Then Exit Sub
+    If filePath = "False" Or filePath = "" Then Exit Sub
 
     cellLeft = targetCell.Left
     cellTop = targetCell.Top
@@ -32,18 +36,13 @@ Sub 写真貼付()
         Filename:=filePath, _
         LinkToFile:=msoFalse, _
         SaveWithDocument:=msoTrue, _
-        Left:=cellLeft, _
-        Top:=cellTop, _
+        Left:=0, _
+        Top:=0, _
         Width:=-1, _
         Height:=-1)
 
     picRatio = pic.Width / pic.Height
-    cellRatio = cellWidth / cellHeight
-
-    Dim margin As Double
     margin = 3
-
-    Dim availW As Double, availH As Double
     availW = cellWidth - margin * 2
     availH = cellHeight - margin * 2
 
@@ -58,15 +57,13 @@ Sub 写真貼付()
     pic.LockAspectRatio = msoTrue
     pic.Width = newWidth
     pic.Height = newHeight
-
-    offsetX = (cellWidth - newWidth) / 2
-    offsetY = (cellHeight - newHeight) / 2
-    pic.Left = cellLeft + offsetX
-    pic.Top = cellTop + offsetY
-
+    pic.Left = cellLeft + (cellWidth - pic.Width) / 2
+    pic.Top = cellTop + (cellHeight - pic.Height) / 2
     pic.Placement = xlMoveAndSize
 
+    On Error Resume Next
     targetCell.Value = ""
+    On Error GoTo 0
 End Sub
 
 Sub 全写真削除()
