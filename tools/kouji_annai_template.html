@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>住戸内機器取替工事日 確定のご案内</title>
+<style>
+  @page { size: A4; margin: 15mm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+    color: #333;
+    line-height: 1.7;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px;
+    font-size: 14px;
+  }
+
+  /* ヘッダー */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .header .building { font-size: 15px; font-weight: bold; }
+  .header .date { font-size: 13px; color: #666; }
+  .room-line { font-size: 14px; margin-bottom: 16px; }
+  .from {
+    text-align: right;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 24px;
+    line-height: 1.8;
+  }
+
+  /* タイトル */
+  .title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    border-bottom: 3px solid #2c5aa0;
+    padding-bottom: 8px;
+    margin-bottom: 6px;
+  }
+  .title .confirmed {
+    color: #d32f2f;
+    font-size: 22px;
+    border: 2px solid #d32f2f;
+    padding: 1px 10px;
+    border-radius: 4px;
+    margin: 0 4px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 20px;
+  }
+
+  /* 工事日程ボックス */
+  .schedule-box {
+    background: #e3f2fd;
+    border: 2px solid #2c5aa0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .schedule-box .label { font-size: 13px; color: #555; margin-bottom: 4px; }
+  .schedule-box .slots {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1a3c6e;
+    letter-spacing: 2px;
+  }
+  .schedule-box .slots .blank {
+    display: inline-block;
+    min-width: 40px;
+    border-bottom: 2px solid #1a3c6e;
+    margin: 0 2px;
+  }
+  .at-home-note {
+    text-align: center;
+    color: #d32f2f;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  /* セクション */
+  .section {
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c5aa0;
+    border-left: 4px solid #2c5aa0;
+    padding-left: 10px;
+    margin-bottom: 10px;
+  }
+  .section ol, .section ul {
+    padding-left: 24px;
+  }
+  .section li {
+    margin-bottom: 6px;
+  }
+  .note {
+    font-size: 13px;
+    color: #666;
+    padding-left: 8px;
+    border-left: 2px solid #ccc;
+    margin-top: 8px;
+  }
+
+  /* 連絡先 */
+  .contact-box {
+    background: #fff3e0;
+    border: 2px solid #e65100;
+    border-radius: 8px;
+    padding: 14px 20px;
+    margin-bottom: 20px;
+  }
+  .contact-box .urgent {
+    font-weight: bold;
+    color: #e65100;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .contact-box .urgent::before { content: "★ "; }
+  .contact-table {
+    width: 100%;
+    font-size: 13px;
+  }
+  .contact-table td {
+    padding: 2px 8px;
+    vertical-align: top;
+  }
+  .contact-table .phone {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    letter-spacing: 1px;
+  }
+
+  /* 注意事項 */
+  .caution-box {
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 14px 20px;
+  }
+  .caution-box .ref {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+  }
+  .caution-box ol {
+    padding-left: 24px;
+  }
+  .caution-box li {
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .caution-box .warning {
+    margin-top: 12px;
+    font-weight: bold;
+    color: #d32f2f;
+    font-size: 13px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="header">
+  <div class="building">宝マンション瓢箪山</div>
+  <div class="date">2026年2月10日</div>
+</div>
+<div class="room-line">________ 号室 居住者様</div>
+<div class="from">
+  パナソニック㈱ EW社<br>
+  協力会社 株式会社TSCアクセス・プロ
+</div>
+
+<!-- タイトル -->
+<div class="title">住戸内機器取替工事日 <span class="confirmed">確定</span> のご案内</div>
+<div class="subtitle">インターホン機器・火災感知器取替工事に関する在宅工事のお知らせ</div>
+
+<!-- 工事日程 -->
+<div class="schedule-box">
+  <div class="label">お客様の工事予定日時</div>
+  <div class="slots">
+    <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;</span>月
+    <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;</span>日（<span class="blank">&nbsp;&nbsp;</span>）
+    <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;</span>時
+    <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;</span>分頃～
+  </div>
+</div>
+<div class="at-home-note">工事の際には、ご在宅いただきますようお願いいたします。</div>
+
+<!-- 工事内容 -->
+<div class="section">
+  <div class="section-title">工事内容</div>
+  <ol>
+    <li>各住戸に入室し、居室インターホンと住戸前の子機を交換します。</li>
+    <li>住戸内火災感知器の終端抵抗器の取替をします。</li>
+    <li>上記工事に関する試験調整をします。</li>
+    <li>工事完了後、取扱い説明をさせていただきます。</li>
+  </ol>
+  <div class="note">
+    各住戸の工事は約1時間程度（機器の取扱い説明含む）です。<br>
+    インターホン周りや火災感知器の下の物品の移動をお願いします。
+  </div>
+</div>
+
+<!-- 連絡先 -->
+<div class="contact-box">
+  <div class="urgent">急遽、工事日程の変更をご希望の場合は下記へご連絡ください。</div>
+  <table class="contact-table">
+    <tr>
+      <td>連絡先</td>
+      <td>株式会社TSCアクセス・プロ</td>
+    </tr>
+    <tr>
+      <td>電話</td>
+      <td><span class="phone">052-269-9100</span></td>
+    </tr>
+    <tr>
+      <td>担当</td>
+      <td>戸田携帯 <span class="phone">080-7117-2018</span></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>小玉携帯 <span class="phone">080-4615-7559</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- 注意事項 -->
+<div class="caution-box">
+  <div class="section-title" style="margin-bottom: 8px;">注意事項</div>
+  <div class="ref">※詳細は配布済の「インターホン設備改修工事のお知らせ」をご確認ください。</div>
+  <strong style="font-size: 13px;">工事期間中のインターホンの取扱について</strong>
+  <ol>
+    <li>住戸内インターホン取替工事が完了後は、新しいインターホンで通常通りご利用できます。</li>
+    <li>各住戸の玄関ドアホンは、工事中もご利用いただけます。</li>
+    <li>集合玄関のオートドアは、工事期間中は従来のキー操作と合わせ暗証番号での解錠となります。ご了承ください。</li>
+  </ol>
+  <div class="warning">工事期間中は、各戸の戸締りに十分お気をつけください。</div>
+</div>
+
+</body>
+</html>
