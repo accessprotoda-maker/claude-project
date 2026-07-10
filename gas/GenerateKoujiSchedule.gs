@@ -592,16 +592,28 @@ function weekdayJP(year, month, day) {
   return WEEKDAYS[(dow + 6) % 7];
 }
 
+// フォームの「日付」質問の回答から年月日を取り出す。
+// DateItemの回答はDateオブジェクトで返る場合と "yyyy-MM-dd" 文字列で返る場合の
+// 両方があるため、どちらでも解釈できるようにする。
+function parseDateAnswer(dateAnswer) {
+  if (!dateAnswer) return null;
+  if (Object.prototype.toString.call(dateAnswer) === "[object Date]") {
+    return { y: dateAnswer.getFullYear(), m: dateAnswer.getMonth() + 1, d: dateAnswer.getDate() };
+  }
+  const m = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(String(dateAnswer));
+  if (!m) return null;
+  return { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) };
+}
+
 // フォームの日付・時間の回答を "m/d（weekday）h:mm" 形式にまとめる。
 // どちらか未回答なら null（第2・第3希望は任意のため、未回答もあり得る）。
 function buildSchedText(answers, dateTitle, timeTitle) {
-  const dateStr = String(answers[dateTitle] || "");
-  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = parseDateAnswer(answers[dateTitle]);
   const timeStr = String(answers[timeTitle] || "");
   const [hour, minute] = timeStr.split(":");
-  if (!y || !m || !d || !hour) return null;
-  const weekday = weekdayJP(y, m, d);
-  return `${m}/${d}（${weekday}）${hour}:${minute}`;
+  if (!date || !hour) return null;
+  const weekday = weekdayJP(date.y, date.m, date.d);
+  return `${date.m}/${date.d}（${weekday}）${hour}:${minute}`;
 }
 
 function findRoomRow(ss, room) {
