@@ -34,6 +34,11 @@
  *   （確認コードが一致しない回答はスプレッドシートに反映されず、
  *   「フォーム取込エラー」シートに記録されます）。
  *
+ *   「工程表」>「住戸QRコード一覧表を作成する（社内用）」を実行すると、
+ *   全住戸の部屋番号・確認コード・QRコードを1枚の一覧表（スプレッドシート）に
+ *   まとめます。配布状況の管理・照合用の社内資料であり、全住戸の確認コードが
+ *   1か所にまとまるため住民には配布しないこと。
+ *
  *   詳しい手順は gas/README.md を参照してください。
  */
 
@@ -58,6 +63,7 @@ function onOpen() {
     .addSeparator()
     .addItem("回答フォームを作成する", "createOrUpdateKoujiForm")
     .addItem("各住戸QRコードを作成する", "createPerRoomQrSlips")
+    .addItem("住戸QRコード一覧表を作成する（社内用）", "createRoomQrList")
     .addItem("フォーム回答を再取り込み", "resyncFormResponses")
     .addToUi();
 }
@@ -749,6 +755,89 @@ function createPerRoomQrSlips() {
       (failedCount > 0
         ? `\n\n※${failedCount}件はQR画像の自動取得に失敗しました。該当ページのURLを別のQR作成サイトなどでご利用ください。`
         : ""),
+    ui.ButtonSet.OK
+  );
+}
+
+const QR_LIST_SHEET_NAME = "QR一覧（社内用）";
+
+// 全住戸の「部屋番号・確認コード・QRコード」を1枚の一覧表（スプレッドシート）にまとめる。
+// 住民への配布物ではなく、社内で配布状況を管理するための一覧。
+// 全住戸の確認コードが1か所に載るため、住民には配布しないこと。
+function createRoomQrList() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const props = PropertiesService.getDocumentProperties();
+  const formId = props.getProperty(FORM_ID_PROP);
+  if (!formId) {
+    ui.alert("先に「回答フォームを作成する」を実行してください。");
+    return;
+  }
+
+  ensureSheetLayout(ss);
+  const entries = getRoomEntries(ss);
+  if (entries.length === 0) {
+    ui.alert("部屋番号が見つかりません。");
+    return;
+  }
+
+  const form = FormApp.openById(formId);
+  const roomItem = findItemByTitle(form, FORM_Q_ROOM);
+  const codeItem = findItemByTitle(form, FORM_Q_CODE);
+  if (!roomItem || !codeItem) {
+    ui.alert("フォームの質問が見つかりません。先に「回答フォームを作成する」を実行してください。");
+    return;
+  }
+
+  let sheet = ss.getSheetByName(QR_LIST_SHEET_NAME);
+  if (sheet) ss.deleteSheet(sheet);
+  sheet = ss.insertSheet(QR_LIST_SHEET_NAME);
+
+  const totalCols = 4;
+  sheet.getRange(1, 1, 1, totalCols).merge()
+    .setValue("住戸別QRコード・確認コード一覧（社内管理用）")
+    .setFontWeight("bold").setFontSize(14)
+    .setHorizontalAlignment("center");
+  sheet.getRange(2, 1, 1, totalCols).merge()
+    .setValue("※全住戸の確認コードが含まれます。住民への配布物には使用せず、社内で厳重に管理してください。")
+    .setFontColor("#FF0000").setWrap(true);
+
+  const headerRow = 3;
+  ["部屋番号", "確認コード", "QRコード", "配布チェック"].forEach((label, i) => {
+    sheet.getRange(headerRow, i + 1)
+      .setValue(label)
+      .setFontWeight("bold")
+      .setBackground(GRAY)
+      .setHorizontalAlignment("center");
+  });
+
+  entries.forEach(({ room, code }, i) => {
+    const row = headerRow + 1 + i;
+    const formResponse = form.createResponse();
+    formResponse.withItemResponse(roomItem.asListItem().createResponse(room));
+    formResponse.withItemResponse(codeItem.asTextItem().createResponse(code));
+    const url = formResponse.toPrefilledUrl();
+    const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(url);
+
+    sheet.getRange(row, 1).setValue(room).setHorizontalAlignment("center").setVerticalAlignment("middle");
+    sheet.getRange(row, 2).setValue(code).setHorizontalAlignment("center").setVerticalAlignment("middle");
+    sheet.getRange(row, 3).setFormula(`=IMAGE("${qrUrl}")`);
+    sheet.getRange(row, 4).insertCheckboxes();
+    sheet.setRowHeight(row, 90);
+  });
+
+  sheet.setColumnWidth(1, 80);
+  sheet.setColumnWidth(2, 90);
+  sheet.setColumnWidth(3, 120);
+  sheet.setColumnWidth(4, 100);
+  sheet.setFrozenRows(headerRow);
+
+  ui.alert(
+    "住戸QRコード一覧表を作成しました",
+    `「${QR_LIST_SHEET_NAME}」シートに、全${entries.length}住戸のQRコード・確認コードを一覧化しました。\n\n` +
+      "この一覧表は全住戸の確認コードが1か所にまとまっているため、住民への配布物には使わず、" +
+      "社内での配布状況の管理・照合用としてご利用ください。\n" +
+      "住民配布用には「各住戸QRコードを作成する」で作成される、1住戸1ページのスライドをお使いください。",
     ui.ButtonSet.OK
   );
 }
