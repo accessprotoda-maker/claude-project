@@ -701,6 +701,27 @@ function onKoujiFormSubmit(e) {
   applyFormResponse(ss, e.response.getItemResponses());
 }
 
+// QRコード画像を取得する。1つ目のサービスが失敗した場合は2つ目を試す
+// （どちらも失敗した場合はnullを返す）。
+function fetchQrImageBlob(dataUrl) {
+  const encoded = encodeURIComponent(dataUrl);
+  const providers = [
+    `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encoded}`,
+    `https://quickchart.io/qr?size=400&text=${encoded}`,
+  ];
+  for (let i = 0; i < providers.length; i++) {
+    try {
+      const resp = UrlFetchApp.fetch(providers[i], { muteHttpExceptions: true });
+      if (resp.getResponseCode() === 200) {
+        return resp.getBlob();
+      }
+    } catch (err) {
+      // 次の候補を試す
+    }
+  }
+  return null;
+}
+
 // 住戸ごとに「部屋番号＋確認コード」を埋め込んだ回答用URLをQRコード化し、
 // 1住戸1ページの印刷用Googleスライドとして生成する。
 // 他の部屋のQRコードを使って回答しても、確認コードが一致しないため反映されない。
@@ -749,16 +770,11 @@ function createPerRoomQrSlips() {
       40, 90, 550, 40
     ).getText().getTextStyle().setFontSize(14);
 
-    const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=" + encodeURIComponent(url);
+    const blob = fetchQrImageBlob(url);
     let inserted = false;
-    try {
-      const resp = UrlFetchApp.fetch(qrUrl, { muteHttpExceptions: true });
-      if (resp.getResponseCode() === 200) {
-        slide.insertImage(resp.getBlob(), 150, 150, 250, 250);
-        inserted = true;
-      }
-    } catch (err) {
-      inserted = false;
+    if (blob) {
+      slide.insertImage(blob, 150, 150, 250, 250);
+      inserted = true;
     }
     if (!inserted) {
       failedCount += 1;
