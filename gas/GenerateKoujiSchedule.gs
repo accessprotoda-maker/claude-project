@@ -352,6 +352,10 @@ function generateKoujiSchedule() {
  * 接続する。住民の回答は自動でE列（日程）・F列（備考）に反映される。
  */
 
+// 操作方法が分からない場合の問い合わせ先。フォームの説明文に表示される。
+// 実際の管理会社等の電話番号に書き換えて使用してください。
+const CONTACT_PHONE = "【管理会社 電話番号：000-0000-0000（平日9:00〜18:00）】";
+
 const FORM_Q_ROOM = "部屋番号";
 const FORM_Q_CODE = "確認コード";
 const FORM_Q_NAME = "氏名";
@@ -500,12 +504,16 @@ function createOrUpdateKoujiForm() {
     props.setProperty(FORM_ID_PROP, form.getId());
     form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
     form.setCollectEmail(false);
-    form.setDescription(
-      "工事の希望日時を第1希望〜第3希望までご回答ください（第2・第3希望は任意です）。" +
-        "同じ部屋番号で再度回答すると、内容は最新の回答で上書きされます。"
-    );
     ScriptApp.newTrigger("onKoujiFormSubmit").forForm(form).onFormSubmit().create();
   }
+
+  // 説明文は毎回更新する（既存フォームに問い合わせ先などを反映するため）
+  form.setDescription(
+    "工事の希望日時を第1希望〜第3希望までご回答ください（第2・第3希望は任意です）。\n" +
+      "同じ部屋番号で再度回答すると、内容は最新の回答で上書きされます。\n\n" +
+      `スマートフォンの操作でご不明な点がございましたら、${CONTACT_PHONE}までお電話ください。` +
+      "ご本人以外（ご家族など）が代わりにご回答いただいても構いません。"
+  );
 
   // 既存の質問はできる限り作り直さず、内容だけ更新する
   // （質問を削除・再作成するとIDが変わり、配布済みの住戸別QRコードが無効になるため）
