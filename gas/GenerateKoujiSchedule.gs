@@ -17,6 +17,12 @@
  *     B列: 氏名（「空室」の場合は空室として表示）
  *     E列: 日程（例: 6/19（金）13:00 / 3月28日(土)9：00）
  *     F列: 備考（「工期外希望」「カメラ付」「受話器」に対応）
+ *
+ * オンライン回答フォーム（紙のアンケート回収の代替）:
+ *   「工程表」>「回答フォームを作成する」を実行すると、入居者一覧の部屋番号を
+ *   選択肢にしたGoogleフォームが作成され、このスプレッドシートに接続されます。
+ *   住民がフォームに回答すると、自動的に該当する部屋番号のE列・F列に反映されます。
+ *   詳しい手順は gas/README.md を参照してください。
  */
 
 const TIME_SLOTS = [9, 10, 11, 13, 14, 15, 16, 17];
@@ -37,6 +43,9 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("工程表")
     .addItem("工程表を作成", "generateKoujiSchedule")
+    .addSeparator()
+    .addItem("回答フォームを作成する", "createOrUpdateKoujiForm")
+    .addItem("フォーム回答を再取り込み", "resyncFormResponses")
     .addToUi();
 }
 
@@ -309,4 +318,174 @@ function generateKoujiSchedule() {
 
   sheet.setFrozenRows(headerRow2);
   SpreadsheetApp.getActiveSpreadsheet().toast("工程表を作成しました。");
+}
+
+/**
+ * オンライン回答フォーム（紙アンケート・ポスト回収の代替）
+ * ------------------------------------------------------------
+ * 入居者一覧の部屋番号を選択肢にしたGoogleフォームを作成し、このスプレッドシートに
+ * 接続する。住民の回答は自動でE列（日程）・F列（備考）に反映される。
+ */
+
+const FORM_Q_ROOM = "部屋番号";
+const FORM_Q_DATE = "工事希望日";
+const FORM_Q_TIME = "工事希望時間";
+const FORM_Q_REMARK = "オプション・ご要望";
+const FORM_ID_PROP = "KOUJI_FORM_ID";
+
+function buildTimeOptions() {
+  const options = [];
+  TIME_SLOTS.forEach((h) => {
+    options.push(`${h}:00`);
+    options.push(`${h}:30`);
+  });
+  return options;
+}
+
+function getRoomList(ss) {
+  const rooms = [];
+  ss.getSheets().forEach((sheet) => {
+    if (sheet.getName() === SCHEDULE_SHEET_NAME) return;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 3) return;
+    const values = sheet.getRange(3, 1, lastRow - 2, 2).getValues();
+    values.forEach(([roomRaw, name]) => {
+      if (roomRaw === "" || roomRaw === null) return;
+      if (String(name || "") === "空室") return;
+      rooms.push(formatRoom(roomRaw));
+    });
+  });
+  return rooms;
+}
+
+function createOrUpdateKoujiForm() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
+  const rooms = getRoomList(ss);
+  if (rooms.length === 0) {
+    ui.alert("入居者一覧に部屋番号が見つかりません。先に部屋番号・氏名を入力してください。");
+    return;
+  }
+
+  const props = PropertiesService.getDocumentProperties();
+  const existingFormId = props.getProperty(FORM_ID_PROP);
+  let form = null;
+  if (existingFormId) {
+    try {
+      form = FormApp.openById(existingFormId);
+    } catch (err) {
+      form = null;
+    }
+  }
+
+  const isNew = !form;
+  if (isNew) {
+    form = FormApp.create(`${buildingName} 工事日程アンケート`);
+    props.setProperty(FORM_ID_PROP, form.getId());
+    form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+    form.setCollectEmail(false);
+    form.setDescription(
+      "工事の希望日時をご回答ください。同じ部屋番号で再度回答すると、内容は最新の回答で上書きされます。"
+    );
+    ScriptApp.newTrigger("onKoujiFormSubmit").forForm(form).onFormSubmit().create();
+  } else {
+    // 部屋番号リストが変わっている場合に備え、質問を作り直す
+    form.getItems().forEach((item) => form.deleteItem(item));
+  }
+
+  form.addListItem().setTitle(FORM_Q_ROOM).setChoiceValues(rooms).setRequired(true);
+  form.addDateItem().setTitle(FORM_Q_DATE).setIncludesYear(true).setRequired(true);
+  form.addListItem().setTitle(FORM_Q_TIME).setChoiceValues(buildTimeOptions()).setRequired(true);
+  form.addCheckboxItem()
+    .setTitle(FORM_Q_REMARK)
+    .setChoiceValues([
+      "インターホンカメラ付きオプションを希望",
+      "インターホン受話器増設を希望",
+      "指定期間内に都合がつかない（工期外希望）",
+    ])
+    .setRequired(false);
+
+  ui.alert(
+    "回答フォームを作成しました",
+    `フォームURL:\n${form.getPublishedUrl()}\n\n` +
+      "Googleフォームの編集画面右上の「送信」ボタンからQRコードを表示できます。\n" +
+      "掲示物や配布物にQRコードを貼り、住民にスマホから回答してもらってください。\n\n" +
+      "住民の回答は自動的に入居者一覧の該当部屋番号（日程・備考欄）に反映されます。",
+    ui.ButtonSet.OK
+  );
+}
+
+function weekdayJP(year, month, day) {
+  const dow = new Date(year, month - 1, day).getDay();
+  return WEEKDAYS[(dow + 6) % 7];
+}
+
+function findRoomRow(ss, room) {
+  let found = null;
+  ss.getSheets().some((sheet) => {
+    if (sheet.getName() === SCHEDULE_SHEET_NAME) return false;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 3) return false;
+    const values = sheet.getRange(3, 1, lastRow - 2, 1).getValues();
+    for (let i = 0; i < values.length; i++) {
+      if (formatRoom(values[i][0]) === room) {
+        found = { sheet, row: i + 3 };
+        return true;
+      }
+    }
+    return false;
+  });
+  return found;
+}
+
+function applyFormResponse(ss, itemResponses) {
+  const answers = {};
+  itemResponses.forEach((ir) => {
+    answers[ir.getItem().getTitle()] = ir.getResponse();
+  });
+
+  const room = String(answers[FORM_Q_ROOM] || "").trim();
+  if (!room) return;
+
+  const dateStr = String(answers[FORM_Q_DATE] || "");
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const timeStr = String(answers[FORM_Q_TIME] || "");
+  const [hour, minute] = timeStr.split(":");
+  if (!y || !m || !d || !hour) return;
+
+  const weekday = weekdayJP(y, m, d);
+  const schedText = `${m}/${d}（${weekday}）${hour}:${minute}`;
+
+  const remarkAnswer = answers[FORM_Q_REMARK];
+  const remarks = Array.isArray(remarkAnswer) ? remarkAnswer : remarkAnswer ? [remarkAnswer] : [];
+  const remarkText = remarks.join("、");
+
+  const target = findRoomRow(ss, room);
+  if (!target) {
+    Logger.log(`部屋番号「${room}」が入居者一覧に見つかりませんでした。`);
+    return;
+  }
+  target.sheet.getRange(target.row, 5).setValue(schedText);
+  target.sheet.getRange(target.row, 6).setValue(remarkText);
+}
+
+function onKoujiFormSubmit(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  applyFormResponse(ss, e.response.getItemResponses());
+}
+
+function resyncFormResponses() {
+  const ui = SpreadsheetApp.getUi();
+  const props = PropertiesService.getDocumentProperties();
+  const formId = props.getProperty(FORM_ID_PROP);
+  if (!formId) {
+    ui.alert("先に「回答フォームを作成する」を実行してください。");
+    return;
+  }
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const form = FormApp.openById(formId);
+  const responses = form.getResponses();
+  responses.forEach((response) => applyFormResponse(ss, response.getItemResponses()));
+  ui.alert(`${responses.length}件の回答を取り込みました。`);
 }
