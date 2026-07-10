@@ -11,18 +11,22 @@
  *
  * 入居者一覧シートのフォーマット（各シート共通）:
  *   1行目: タイトル（A1: 物件名）
- *   2行目: 見出し（部屋番号, 氏名, 電話, 携帯, 日程, 備考）
+ *   2行目: 見出し（部屋番号, 氏名, 電話, 携帯, 日程, 備考, 確認コード, 第1希望, 第2希望, 第3希望）
  *   3行目以降: データ
  *     A列: 部屋番号
  *     B列: 氏名（「空室」の場合は空室として表示）
- *     E列: 日程（例: 6/19（金）13:00 / 3月28日(土)9：00）
+ *     E列: 日程（工程表の作成に使われる「確定日程」。既定では第1希望が入る。
+ *          第1希望どおりに施工できない場合は、H〜J列を見ながらここを
+ *          手動で書き換えてから「工程表を作成」を実行する）
  *     F列: 備考（「工期外希望」「カメラ付」「受話器」に対応）
+ *     H・I・J列: 第1〜第3希望（回答フォームで集めた希望日時。参考情報として保存される）
  *
  * オンライン回答フォーム（紙のアンケート回収の代替）:
  *   「工程表」>「回答フォームを作成する」を実行すると、入居者一覧の部屋番号を
  *   選択肢にしたGoogleフォームが作成され、このスプレッドシートに接続されます。
- *   住民は氏名・電話番号もフォーム上で入力し、回答すると自動的に該当する
- *   部屋番号のB列（氏名）・C列（電話）・E列（日程）・F列（備考）に反映されます。
+ *   住民は氏名・電話番号・第1〜第3希望日時をフォーム上で入力し、回答すると
+ *   自動的に該当する部屋番号のB列（氏名）・C列（電話）・E列（確定日程＝第1希望）・
+ *   F列（備考）・H〜J列（第1〜第3希望）に反映されます。
  *
  *   「工程表」>「各住戸QRコードを作成する」を実行すると、住戸ごとに専用の
  *   QRコード（部屋番号＋確認コードを埋め込んだ回答リンク）を印刷用スライドとして
@@ -346,12 +350,24 @@ const FORM_Q_ROOM = "部屋番号";
 const FORM_Q_CODE = "確認コード";
 const FORM_Q_NAME = "氏名";
 const FORM_Q_TEL = "電話番号";
-const FORM_Q_DATE = "工事希望日";
-const FORM_Q_TIME = "工事希望時間";
+const FORM_Q_DATE1 = "第1希望日";
+const FORM_Q_TIME1 = "第1希望時間";
+const FORM_Q_DATE2 = "第2希望日";
+const FORM_Q_TIME2 = "第2希望時間";
+const FORM_Q_DATE3 = "第3希望日";
+const FORM_Q_TIME3 = "第3希望時間";
 const FORM_Q_REMARK = "オプション・ご要望";
 const FORM_ID_PROP = "KOUJI_FORM_ID";
 const ERROR_SHEET_NAME = "フォーム取込エラー";
 const CODE_COL = 7; // G列: 住戸ごとの確認コード（QRコードに埋め込む合言葉）
+const PREF_COLS = [8, 9, 10]; // H・I・J列: 第1〜第3希望
+const PREF_FIELDS = [
+  [FORM_Q_DATE1, FORM_Q_TIME1, true],
+  [FORM_Q_DATE2, FORM_Q_TIME2, false],
+  [FORM_Q_DATE3, FORM_Q_TIME3, false],
+];
+// 旧バージョン（単一希望のみ）で使っていた質問。フォーム更新時に見つかれば削除する。
+const LEGACY_FORM_TITLES = ["工事希望日", "工事希望時間"];
 
 function buildTimeOptions() {
   const options = [];
@@ -366,8 +382,9 @@ function generatePassword() {
   return String(Math.floor(1000 + Math.random() * 9000)); // 4桁の数字
 }
 
-// 各部屋（空室を除く）にG列の確認コードが無ければ発行する。既存のコードは変更しない。
-function ensureRoomPasswords(ss) {
+// 各部屋（空室を除く）にG列の確認コードが無ければ発行し、H〜J列（第1〜第3希望）の
+// 見出しを整える。既存の確認コード・希望日時は変更しない。
+function ensureSheetLayout(ss) {
   ss.getSheets().forEach((sheet) => {
     if (!isRoomDataSheet(sheet)) return;
     const lastRow = sheet.getLastRow();
@@ -376,6 +393,12 @@ function ensureRoomPasswords(ss) {
     if (!sheet.getRange(2, CODE_COL).getValue()) {
       sheet.getRange(2, CODE_COL).setValue("確認コード");
     }
+    ["第1希望", "第2希望", "第3希望"].forEach((label, i) => {
+      const col = PREF_COLS[i];
+      if (!sheet.getRange(2, col).getValue()) {
+        sheet.getRange(2, col).setValue(label);
+      }
+    });
 
     const range = sheet.getRange(3, 1, lastRow - 2, CODE_COL);
     const values = range.getValues();
@@ -447,7 +470,7 @@ function createOrUpdateKoujiForm() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
 
-  ensureRoomPasswords(ss);
+  ensureSheetLayout(ss);
   const rooms = getRoomList(ss);
   if (rooms.length === 0) {
     ui.alert("入居者一覧に部屋番号が見つかりません。先に部屋番号を入力してください（空室はB列に「空室」と入力）。");
@@ -472,7 +495,8 @@ function createOrUpdateKoujiForm() {
     form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
     form.setCollectEmail(false);
     form.setDescription(
-      "工事の希望日時をご回答ください。同じ部屋番号で再度回答すると、内容は最新の回答で上書きされます。"
+      "工事の希望日時を第1希望〜第3希望までご回答ください（第2・第3希望は任意です）。" +
+        "同じ部屋番号で再度回答すると、内容は最新の回答で上書きされます。"
     );
     ScriptApp.newTrigger("onKoujiFormSubmit").forForm(form).onFormSubmit().create();
   }
@@ -504,13 +528,20 @@ function createOrUpdateKoujiForm() {
       .setRequired(true);
   }
 
-  if (!findItemByTitle(form, FORM_Q_DATE)) {
-    form.addDateItem().setTitle(FORM_Q_DATE).setIncludesYear(true).setRequired(true);
-  }
+  PREF_FIELDS.forEach(([dateTitle, timeTitle, required]) => {
+    if (!findItemByTitle(form, dateTitle)) {
+      form.addDateItem().setTitle(dateTitle).setIncludesYear(true).setRequired(required);
+    }
+    if (!findItemByTitle(form, timeTitle)) {
+      form.addListItem().setTitle(timeTitle).setChoiceValues(buildTimeOptions()).setRequired(required);
+    }
+  });
 
-  if (!findItemByTitle(form, FORM_Q_TIME)) {
-    form.addListItem().setTitle(FORM_Q_TIME).setChoiceValues(buildTimeOptions()).setRequired(true);
-  }
+  // 旧バージョンの単一希望の質問が残っていれば削除する
+  LEGACY_FORM_TITLES.forEach((title) => {
+    const legacyItem = findItemByTitle(form, title);
+    if (legacyItem) form.deleteItem(legacyItem);
+  });
 
   if (!findItemByTitle(form, FORM_Q_REMARK)) {
     form.addCheckboxItem()
@@ -524,12 +555,22 @@ function createOrUpdateKoujiForm() {
   }
 
   // 質問の表示順を整える（IDは変わらないため、配布済みQRコードには影響しない）
-  [FORM_Q_ROOM, FORM_Q_CODE, FORM_Q_NAME, FORM_Q_TEL, FORM_Q_DATE, FORM_Q_TIME, FORM_Q_REMARK].forEach(
-    (title, index) => {
-      const item = findItemByTitle(form, title);
-      if (item) form.moveItem(item.getIndex(), index);
-    }
-  );
+  [
+    FORM_Q_ROOM,
+    FORM_Q_CODE,
+    FORM_Q_NAME,
+    FORM_Q_TEL,
+    FORM_Q_DATE1,
+    FORM_Q_TIME1,
+    FORM_Q_DATE2,
+    FORM_Q_TIME2,
+    FORM_Q_DATE3,
+    FORM_Q_TIME3,
+    FORM_Q_REMARK,
+  ].forEach((title, index) => {
+    const item = findItemByTitle(form, title);
+    if (item) form.moveItem(item.getIndex(), index);
+  });
 
   ui.alert(
     isNew ? "回答フォームを作成しました" : "回答フォームを更新しました",
@@ -543,6 +584,18 @@ function createOrUpdateKoujiForm() {
 function weekdayJP(year, month, day) {
   const dow = new Date(year, month - 1, day).getDay();
   return WEEKDAYS[(dow + 6) % 7];
+}
+
+// フォームの日付・時間の回答を "m/d（weekday）h:mm" 形式にまとめる。
+// どちらか未回答なら null（第2・第3希望は任意のため、未回答もあり得る）。
+function buildSchedText(answers, dateTitle, timeTitle) {
+  const dateStr = String(answers[dateTitle] || "");
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const timeStr = String(answers[timeTitle] || "");
+  const [hour, minute] = timeStr.split(":");
+  if (!y || !m || !d || !hour) return null;
+  const weekday = weekdayJP(y, m, d);
+  return `${m}/${d}（${weekday}）${hour}:${minute}`;
 }
 
 function findRoomRow(ss, room) {
@@ -587,14 +640,8 @@ function applyFormResponse(ss, itemResponses) {
     return;
   }
 
-  const dateStr = String(answers[FORM_Q_DATE] || "");
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const timeStr = String(answers[FORM_Q_TIME] || "");
-  const [hour, minute] = timeStr.split(":");
-  if (!y || !m || !d || !hour) return;
-
-  const weekday = weekdayJP(y, m, d);
-  const schedText = `${m}/${d}（${weekday}）${hour}:${minute}`;
+  const preferences = PREF_FIELDS.map(([dateTitle, timeTitle]) => buildSchedText(answers, dateTitle, timeTitle));
+  if (!preferences[0]) return; // 第1希望は必須のため通常ここには来ない
 
   const remarkAnswer = answers[FORM_Q_REMARK];
   const remarks = Array.isArray(remarkAnswer) ? remarkAnswer : remarkAnswer ? [remarkAnswer] : [];
@@ -605,8 +652,13 @@ function applyFormResponse(ss, itemResponses) {
   if (name) target.sheet.getRange(target.row, 2).setValue(name);
   if (tel) target.sheet.getRange(target.row, 3).setValue(tel);
 
-  target.sheet.getRange(target.row, 5).setValue(schedText);
+  // E列（確定日程）は既定で第1希望を採用する。第1希望どおりに施工できない場合は、
+  // H〜J列（第1〜第3希望）を見ながら管理者がE列を手動で書き換えてから工程表を作成する。
+  target.sheet.getRange(target.row, 5).setValue(preferences[0]);
   target.sheet.getRange(target.row, 6).setValue(remarkText);
+  PREF_COLS.forEach((col, i) => {
+    target.sheet.getRange(target.row, col).setValue(preferences[i] || "");
+  });
 }
 
 function onKoujiFormSubmit(e) {
@@ -627,7 +679,7 @@ function createPerRoomQrSlips() {
     return;
   }
 
-  ensureRoomPasswords(ss);
+  ensureSheetLayout(ss);
   const entries = getRoomEntries(ss);
   if (entries.length === 0) {
     ui.alert("部屋番号が見つかりません。");
