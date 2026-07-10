@@ -11,7 +11,7 @@
  *
  * 入居者一覧シートのフォーマット（各シート共通）:
  *   1行目: タイトル（A1: 物件名）
- *   2行目: 見出し（部屋番号, 氏名, 電話, 携帯, 日程, 備考, 確認コード, 第1希望, 第2希望, 第3希望）
+ *   2行目: 見出し（部屋番号, 氏名, 電話, 携帯, 日程, 備考, 確認コード, 第1希望, 第2希望, 第3希望, 所有者メール）
  *   3行目以降: データ
  *     A列: 部屋番号
  *     B列: 氏名（「空室」の場合は空室として表示）
@@ -20,6 +20,8 @@
  *          手動で書き換えてから「工程表を作成」を実行する）
  *     F列: 備考（「工期外希望」「カメラ付」「受話器」に対応）
  *     H・I・J列: 第1〜第3希望（回答フォームで集めた希望日時。参考情報として保存される）
+ *     K列: 所有者メール（任意。住戸に居住していない所有者〈賃貸オーナー等〉宛に
+ *          回答リンクをメール送付したい場合のみ入力する）
  *
  * オンライン回答フォーム（紙のアンケート回収の代替）:
  *   「工程表」>「回答フォームを作成する」を実行すると、入居者一覧の部屋番号を
@@ -64,6 +66,7 @@ function onOpen() {
     .addItem("回答フォームを作成する", "createOrUpdateKoujiForm")
     .addItem("各住戸QRコードを作成する", "createPerRoomQrSlips")
     .addItem("住戸QRコード一覧表を作成する（社内用）", "createRoomQrList")
+    .addItem("所有者へ回答リンクをメールで送る", "emailAbsenteeOwners")
     .addItem("フォーム回答を再取り込み", "resyncFormResponses")
     .addToUi();
 }
@@ -352,9 +355,11 @@ function generateKoujiSchedule() {
  * 接続する。住民の回答は自動でE列（日程）・F列（備考）に反映される。
  */
 
-// 操作方法が分からない場合の問い合わせ先。フォームの説明文に表示される。
-// 実際の管理会社等の電話番号に書き換えて使用してください。
-const CONTACT_PHONE = "【管理会社 電話番号：000-0000-0000（平日9:00〜18:00）】";
+// 操作方法が分からない場合の問い合わせ先。フォームの説明文・所有者宛メールに表示される。
+const CONTACT_PHONE_LABEL = "施工会社";
+const CONTACT_PHONE_NUMBER = "052-269-9100";
+const CONTACT_PHONE = `${CONTACT_PHONE_LABEL}：${CONTACT_PHONE_NUMBER}`;
+const CONTACT_PHONE_TEL_URI = `tel:${CONTACT_PHONE_NUMBER.replace(/-/g, "")}`;
 
 const FORM_Q_ROOM = "部屋番号";
 const FORM_Q_CODE = "確認コード";
@@ -371,6 +376,7 @@ const FORM_ID_PROP = "KOUJI_FORM_ID";
 const ERROR_SHEET_NAME = "フォーム取込エラー";
 const CODE_COL = 7; // G列: 住戸ごとの確認コード（QRコードに埋め込む合言葉）
 const PREF_COLS = [8, 9, 10]; // H・I・J列: 第1〜第3希望
+const OWNER_EMAIL_COL = 11; // K列: 住戸に居住していない所有者（賃貸オーナー等）のメールアドレス（任意）
 const PREF_FIELDS = [
   [FORM_Q_DATE1, FORM_Q_TIME1, true],
   [FORM_Q_DATE2, FORM_Q_TIME2, false],
@@ -409,6 +415,9 @@ function ensureSheetLayout(ss) {
         sheet.getRange(2, col).setValue(label);
       }
     });
+    if (!sheet.getRange(2, OWNER_EMAIL_COL).getValue()) {
+      sheet.getRange(2, OWNER_EMAIL_COL).setValue("所有者メール（任意）");
+    }
 
     const range = sheet.getRange(3, 1, lastRow - 2, CODE_COL);
     const values = range.getValues();
@@ -813,17 +822,20 @@ function createRoomQrList() {
   if (sheet) ss.deleteSheet(sheet);
   sheet = ss.insertSheet(QR_LIST_SHEET_NAME);
 
-  const totalCols = 4;
+  const totalCols = 5;
   sheet.getRange(1, 1, 1, totalCols).merge()
     .setValue("住戸別QRコード・確認コード一覧（社内管理用）")
     .setFontWeight("bold").setFontSize(14)
     .setHorizontalAlignment("center");
   sheet.getRange(2, 1, 1, totalCols).merge()
-    .setValue("※全住戸の確認コードが含まれます。住民への配布物には使用せず、社内で厳重に管理してください。")
+    .setValue(
+      "※全住戸の確認コードが含まれます。住民への配布物には使用せず、社内で厳重に管理してください。" +
+        "「回答用URL」は、お電話で回答を代行入力する際などにクリックしてお使いください。"
+    )
     .setFontColor("#FF0000").setWrap(true);
 
   const headerRow = 3;
-  ["部屋番号", "確認コード", "QRコード", "配布チェック"].forEach((label, i) => {
+  ["部屋番号", "確認コード", "QRコード", "回答用URL", "配布チェック"].forEach((label, i) => {
     sheet.getRange(headerRow, i + 1)
       .setValue(label)
       .setFontWeight("bold")
@@ -842,22 +854,121 @@ function createRoomQrList() {
     sheet.getRange(row, 1).setValue(room).setHorizontalAlignment("center").setVerticalAlignment("middle");
     sheet.getRange(row, 2).setValue(code).setHorizontalAlignment("center").setVerticalAlignment("middle");
     sheet.getRange(row, 3).setFormula(`=IMAGE("${qrUrl}")`);
-    sheet.getRange(row, 4).insertCheckboxes();
+    sheet.getRange(row, 4).setFormula(`=HYPERLINK("${url}","${room}号室の回答フォームを開く")`);
+    sheet.getRange(row, 5).insertCheckboxes();
     sheet.setRowHeight(row, 90);
   });
 
   sheet.setColumnWidth(1, 80);
   sheet.setColumnWidth(2, 90);
   sheet.setColumnWidth(3, 120);
-  sheet.setColumnWidth(4, 100);
+  sheet.setColumnWidth(4, 220);
+  sheet.setColumnWidth(5, 100);
   sheet.setFrozenRows(headerRow);
 
   ui.alert(
     "住戸QRコード一覧表を作成しました",
-    `「${QR_LIST_SHEET_NAME}」シートに、全${entries.length}住戸のQRコード・確認コードを一覧化しました。\n\n` +
+    `「${QR_LIST_SHEET_NAME}」シートに、全${entries.length}住戸のQRコード・確認コード・回答用URLを一覧化しました。\n\n` +
       "この一覧表は全住戸の確認コードが1か所にまとまっているため、住民への配布物には使わず、" +
       "社内での配布状況の管理・照合用としてご利用ください。\n" +
+      "電話で回答内容を伺い代行入力する場合は、「回答用URL」列のリンクから該当住戸のフォームを開いて入力できます。\n" +
       "住民配布用には「各住戸QRコードを作成する」で作成される、1住戸1ページのスライドをお使いください。",
+    ui.ButtonSet.OK
+  );
+}
+
+// 住戸に居住していない所有者（賃貸オーナー等）向けに、入居者一覧のK列に登録された
+// メールアドレス宛てに、その住戸専用の回答リンクを送信する。
+// QRコードを掲示物として見る機会がない所有者向けの代替配布手段。
+function emailAbsenteeOwners() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const props = PropertiesService.getDocumentProperties();
+  const formId = props.getProperty(FORM_ID_PROP);
+  if (!formId) {
+    ui.alert("先に「回答フォームを作成する」を実行してください。");
+    return;
+  }
+
+  ensureSheetLayout(ss);
+
+  const form = FormApp.openById(formId);
+  const roomItem = findItemByTitle(form, FORM_Q_ROOM);
+  const codeItem = findItemByTitle(form, FORM_Q_CODE);
+  if (!roomItem || !codeItem) {
+    ui.alert("フォームの質問が見つかりません。先に「回答フォームを作成する」を実行してください。");
+    return;
+  }
+
+  const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
+  let sentCount = 0;
+  const failed = [];
+
+  ss.getSheets().forEach((sheet) => {
+    if (!isRoomDataSheet(sheet)) return;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 3) return;
+
+    const values = sheet.getRange(3, 1, lastRow - 2, OWNER_EMAIL_COL).getValues();
+    values.forEach((row) => {
+      const roomRaw = row[0];
+      const name = row[1];
+      const code = row[CODE_COL - 1];
+      const ownerEmail = String(row[OWNER_EMAIL_COL - 1] || "").trim();
+      if (roomRaw === "" || roomRaw === null) return;
+      if (String(name || "") === "空室") return;
+      if (!ownerEmail) return;
+
+      const room = formatRoom(roomRaw);
+      const formResponse = form.createResponse();
+      formResponse.withItemResponse(roomItem.asListItem().createResponse(room));
+      formResponse.withItemResponse(codeItem.asTextItem().createResponse(String(code || "")));
+      const url = formResponse.toPrefilledUrl();
+
+      const subject = `【${buildingName}】工事日程アンケートのお願い（${room}号室）`;
+      // htmlMailClient向け: 電話番号をタップでそのまま発信できるようtel:リンクにする
+      const plainBody =
+        `${room}号室の所有者様\n\n` +
+        "平素より大変お世話になっております。インターホン・自動火災報知設備の取替工事にあたり、" +
+        "工事希望日時のご回答をお願いしております。\n\n" +
+        "以下のリンクより、工事希望日時（第1〜第3希望。第1希望のみ必須）をご回答ください。\n" +
+        `${url}\n\n` +
+        `※このリンクは${room}号室専用です。他の住戸の回答にはご利用いただけません。\n` +
+        "※実際にお住まいの方がいらっしゃる場合は、そちらの方にご回答いただいても構いません。\n\n" +
+        `ご不明な点がございましたら、${CONTACT_PHONE}までお問い合わせください。`;
+      const htmlBody =
+        `<p>${room}号室の所有者様</p>` +
+        "<p>平素より大変お世話になっております。インターホン・自動火災報知設備の取替工事にあたり、" +
+        "工事希望日時のご回答をお願いしております。</p>" +
+        `<p><a href="${url}">こちらのリンクより工事希望日時（第1〜第3希望。第1希望のみ必須）をご回答ください</a></p>` +
+        `<p>※このリンクは${room}号室専用です。他の住戸の回答にはご利用いただけません。<br>` +
+        "※実際にお住まいの方がいらっしゃる場合は、そちらの方にご回答いただいても構いません。</p>" +
+        `<p>ご不明な点がございましたら、${CONTACT_PHONE_LABEL}` +
+        `<a href="${CONTACT_PHONE_TEL_URI}">${CONTACT_PHONE_NUMBER}</a>までお問い合わせください。</p>`;
+
+      try {
+        MailApp.sendEmail({ to: ownerEmail, subject, body: plainBody, htmlBody });
+        sentCount += 1;
+      } catch (err) {
+        failed.push(`${room}（${ownerEmail}）`);
+      }
+    });
+  });
+
+  if (sentCount === 0 && failed.length === 0) {
+    ui.alert(
+      "送信対象がありません",
+      `入居者一覧のK列（${OWNER_EMAIL_COL}列目・見出し「所有者メール（任意）」）に、` +
+        "住戸に居住していない所有者のメールアドレスを入力してから実行してください。",
+      ui.ButtonSet.OK
+    );
+    return;
+  }
+
+  ui.alert(
+    "所有者へのメール送信が完了しました",
+    `${sentCount}件送信しました。` +
+      (failed.length > 0 ? `\n\n送信に失敗した住戸: ${failed.join("、")}` : ""),
     ui.ButtonSet.OK
   );
 }
