@@ -22,6 +22,13 @@
  *   「工程表」>「回答フォームを作成する」を実行すると、入居者一覧の部屋番号を
  *   選択肢にしたGoogleフォームが作成され、このスプレッドシートに接続されます。
  *   住民がフォームに回答すると、自動的に該当する部屋番号のE列・F列に反映されます。
+ *
+ *   「工程表」>「各住戸QRコードを作成する」を実行すると、住戸ごとに専用の
+ *   QRコード（部屋番号＋確認コードを埋め込んだ回答リンク）を印刷用スライドとして
+ *   生成します。他の部屋のQRコードを使って回答することはできません
+ *   （確認コードが一致しない回答はスプレッドシートに反映されず、
+ *   「フォーム取込エラー」シートに記録されます）。
+ *
  *   詳しい手順は gas/README.md を参照してください。
  */
 
@@ -45,6 +52,7 @@ function onOpen() {
     .addItem("工程表を作成", "generateKoujiSchedule")
     .addSeparator()
     .addItem("回答フォームを作成する", "createOrUpdateKoujiForm")
+    .addItem("各住戸QRコードを作成する", "createPerRoomQrSlips")
     .addItem("フォーム回答を再取り込み", "resyncFormResponses")
     .addToUi();
 }
@@ -77,6 +85,12 @@ function formatRoom(room) {
   return String(room).trim();
 }
 
+// 工程表シート・フォーム取込エラーシートは部屋データとして扱わない
+function isRoomDataSheet(sheet) {
+  const name = sheet.getName();
+  return name !== SCHEDULE_SHEET_NAME && name !== ERROR_SHEET_NAME;
+}
+
 function commonAreaDate(month, day, weekday) {
   const d = new Date(2001, month - 1, day);
   d.setDate(d.getDate() - 1);
@@ -92,7 +106,7 @@ function collectRoomData(ss) {
   const notSubmitted = [];
 
   ss.getSheets().forEach((sheet) => {
-    if (sheet.getName() === SCHEDULE_SHEET_NAME) return;
+    if (!isRoomDataSheet(sheet)) return;
     const lastRow = sheet.getLastRow();
     if (lastRow < 3) return;
 
@@ -328,10 +342,13 @@ function generateKoujiSchedule() {
  */
 
 const FORM_Q_ROOM = "部屋番号";
+const FORM_Q_CODE = "確認コード";
 const FORM_Q_DATE = "工事希望日";
 const FORM_Q_TIME = "工事希望時間";
 const FORM_Q_REMARK = "オプション・ご要望";
 const FORM_ID_PROP = "KOUJI_FORM_ID";
+const ERROR_SHEET_NAME = "フォーム取込エラー";
+const CODE_COL = 7; // G列: 住戸ごとの確認コード（QRコードに埋め込む合言葉）
 
 function buildTimeOptions() {
   const options = [];
@@ -342,10 +359,42 @@ function buildTimeOptions() {
   return options;
 }
 
+function generatePassword() {
+  return String(Math.floor(1000 + Math.random() * 9000)); // 4桁の数字
+}
+
+// 各部屋（空室を除く）にG列の確認コードが無ければ発行する。既存のコードは変更しない。
+function ensureRoomPasswords(ss) {
+  ss.getSheets().forEach((sheet) => {
+    if (!isRoomDataSheet(sheet)) return;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 3) return;
+
+    if (!sheet.getRange(2, CODE_COL).getValue()) {
+      sheet.getRange(2, CODE_COL).setValue("確認コード");
+    }
+
+    const range = sheet.getRange(3, 1, lastRow - 2, CODE_COL);
+    const values = range.getValues();
+    let changed = false;
+    values.forEach((row) => {
+      const room = row[0];
+      const name = row[1];
+      if (room === "" || room === null) return;
+      if (String(name || "") === "空室") return;
+      if (!row[CODE_COL - 1]) {
+        row[CODE_COL - 1] = generatePassword();
+        changed = true;
+      }
+    });
+    if (changed) range.setValues(values);
+  });
+}
+
 function getRoomList(ss) {
   const rooms = [];
   ss.getSheets().forEach((sheet) => {
-    if (sheet.getName() === SCHEDULE_SHEET_NAME) return;
+    if (!isRoomDataSheet(sheet)) return;
     const lastRow = sheet.getLastRow();
     if (lastRow < 3) return;
     const values = sheet.getRange(3, 1, lastRow - 2, 2).getValues();
@@ -358,10 +407,44 @@ function getRoomList(ss) {
   return rooms;
 }
 
+// 部屋番号と確認コードの一覧（各住戸QRコードの生成に使う）
+function getRoomEntries(ss) {
+  const entries = [];
+  ss.getSheets().forEach((sheet) => {
+    if (!isRoomDataSheet(sheet)) return;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 3) return;
+    const values = sheet.getRange(3, 1, lastRow - 2, CODE_COL).getValues();
+    values.forEach((row) => {
+      const roomRaw = row[0];
+      const name = row[1];
+      if (roomRaw === "" || roomRaw === null) return;
+      if (String(name || "") === "空室") return;
+      entries.push({ room: formatRoom(roomRaw), code: String(row[CODE_COL - 1] || "") });
+    });
+  });
+  return entries;
+}
+
+function findItemByTitle(form, title) {
+  return form.getItems().find((item) => item.getTitle() === title) || null;
+}
+
+function logFormError(ss, message) {
+  let sheet = ss.getSheetByName(ERROR_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(ERROR_SHEET_NAME);
+    sheet.appendRow(["日時", "内容"]);
+  }
+  sheet.appendRow([new Date(), message]);
+}
+
 function createOrUpdateKoujiForm() {
   const ui = SpreadsheetApp.getUi();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
+
+  ensureRoomPasswords(ss);
   const rooms = getRoomList(ss);
   if (rooms.length === 0) {
     ui.alert("入居者一覧に部屋番号が見つかりません。先に部屋番号・氏名を入力してください。");
@@ -389,29 +472,48 @@ function createOrUpdateKoujiForm() {
       "工事の希望日時をご回答ください。同じ部屋番号で再度回答すると、内容は最新の回答で上書きされます。"
     );
     ScriptApp.newTrigger("onKoujiFormSubmit").forForm(form).onFormSubmit().create();
-  } else {
-    // 部屋番号リストが変わっている場合に備え、質問を作り直す
-    form.getItems().forEach((item) => form.deleteItem(item));
   }
 
-  form.addListItem().setTitle(FORM_Q_ROOM).setChoiceValues(rooms).setRequired(true);
-  form.addDateItem().setTitle(FORM_Q_DATE).setIncludesYear(true).setRequired(true);
-  form.addListItem().setTitle(FORM_Q_TIME).setChoiceValues(buildTimeOptions()).setRequired(true);
-  form.addCheckboxItem()
-    .setTitle(FORM_Q_REMARK)
-    .setChoiceValues([
-      "インターホンカメラ付きオプションを希望",
-      "インターホン受話器増設を希望",
-      "指定期間内に都合がつかない（工期外希望）",
-    ])
-    .setRequired(false);
+  // 既存の質問はできる限り作り直さず、内容だけ更新する
+  // （質問を削除・再作成するとIDが変わり、配布済みの住戸別QRコードが無効になるため）
+  const roomItem = findItemByTitle(form, FORM_Q_ROOM);
+  if (roomItem) {
+    roomItem.asListItem().setChoiceValues(rooms);
+  } else {
+    form.addListItem().setTitle(FORM_Q_ROOM).setChoiceValues(rooms).setRequired(true);
+  }
+
+  if (!findItemByTitle(form, FORM_Q_CODE)) {
+    form.addTextItem()
+      .setTitle(FORM_Q_CODE)
+      .setHelpText("QRコードから自動的に入力されます。ご自身での入力は不要です。")
+      .setRequired(true);
+  }
+
+  if (!findItemByTitle(form, FORM_Q_DATE)) {
+    form.addDateItem().setTitle(FORM_Q_DATE).setIncludesYear(true).setRequired(true);
+  }
+
+  if (!findItemByTitle(form, FORM_Q_TIME)) {
+    form.addListItem().setTitle(FORM_Q_TIME).setChoiceValues(buildTimeOptions()).setRequired(true);
+  }
+
+  if (!findItemByTitle(form, FORM_Q_REMARK)) {
+    form.addCheckboxItem()
+      .setTitle(FORM_Q_REMARK)
+      .setChoiceValues([
+        "インターホンカメラ付きオプションを希望",
+        "インターホン受話器増設を希望",
+        "指定期間内に都合がつかない（工期外希望）",
+      ])
+      .setRequired(false);
+  }
 
   ui.alert(
-    "回答フォームを作成しました",
+    isNew ? "回答フォームを作成しました" : "回答フォームを更新しました",
     `フォームURL:\n${form.getPublishedUrl()}\n\n` +
-      "Googleフォームの編集画面右上の「送信」ボタンからQRコードを表示できます。\n" +
-      "掲示物や配布物にQRコードを貼り、住民にスマホから回答してもらってください。\n\n" +
-      "住民の回答は自動的に入居者一覧の該当部屋番号（日程・備考欄）に反映されます。",
+      "続けて「工程表」>「各住戸QRコードを作成する」を実行すると、" +
+      "住戸ごとに専用のQRコード（他の部屋の回答には使えません）を印刷用スライドとして生成できます。",
     ui.ButtonSet.OK
   );
 }
@@ -424,7 +526,7 @@ function weekdayJP(year, month, day) {
 function findRoomRow(ss, room) {
   let found = null;
   ss.getSheets().some((sheet) => {
-    if (sheet.getName() === SCHEDULE_SHEET_NAME) return false;
+    if (!isRoomDataSheet(sheet)) return false;
     const lastRow = sheet.getLastRow();
     if (lastRow < 3) return false;
     const values = sheet.getRange(3, 1, lastRow - 2, 1).getValues();
@@ -448,6 +550,21 @@ function applyFormResponse(ss, itemResponses) {
   const room = String(answers[FORM_Q_ROOM] || "").trim();
   if (!room) return;
 
+  const target = findRoomRow(ss, room);
+  if (!target) {
+    logFormError(ss, `部屋番号「${room}」が入居者一覧に見つかりませんでした。`);
+    return;
+  }
+
+  // 住戸別QRコードに埋め込まれた確認コードと一致するか照合する。
+  // 一致しない場合は「別の部屋のQRコードで回答された」可能性があるため反映しない。
+  const expectedCode = String(target.sheet.getRange(target.row, CODE_COL).getValue() || "").trim();
+  const submittedCode = String(answers[FORM_Q_CODE] || "").trim();
+  if (expectedCode && submittedCode !== expectedCode) {
+    logFormError(ss, `部屋番号「${room}」の確認コードが一致しませんでした（別の部屋のQRコードの可能性）。`);
+    return;
+  }
+
   const dateStr = String(answers[FORM_Q_DATE] || "");
   const [y, m, d] = dateStr.split("-").map(Number);
   const timeStr = String(answers[FORM_Q_TIME] || "");
@@ -461,11 +578,6 @@ function applyFormResponse(ss, itemResponses) {
   const remarks = Array.isArray(remarkAnswer) ? remarkAnswer : remarkAnswer ? [remarkAnswer] : [];
   const remarkText = remarks.join("、");
 
-  const target = findRoomRow(ss, room);
-  if (!target) {
-    Logger.log(`部屋番号「${room}」が入居者一覧に見つかりませんでした。`);
-    return;
-  }
   target.sheet.getRange(target.row, 5).setValue(schedText);
   target.sheet.getRange(target.row, 6).setValue(remarkText);
 }
@@ -473,6 +585,93 @@ function applyFormResponse(ss, itemResponses) {
 function onKoujiFormSubmit(e) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   applyFormResponse(ss, e.response.getItemResponses());
+}
+
+// 住戸ごとに「部屋番号＋確認コード」を埋め込んだ回答用URLをQRコード化し、
+// 1住戸1ページの印刷用Googleスライドとして生成する。
+// 他の部屋のQRコードを使って回答しても、確認コードが一致しないため反映されない。
+function createPerRoomQrSlips() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const props = PropertiesService.getDocumentProperties();
+  const formId = props.getProperty(FORM_ID_PROP);
+  if (!formId) {
+    ui.alert("先に「回答フォームを作成する」を実行してください。");
+    return;
+  }
+
+  ensureRoomPasswords(ss);
+  const entries = getRoomEntries(ss);
+  if (entries.length === 0) {
+    ui.alert("部屋番号が見つかりません。");
+    return;
+  }
+
+  const form = FormApp.openById(formId);
+  const roomItem = findItemByTitle(form, FORM_Q_ROOM);
+  const codeItem = findItemByTitle(form, FORM_Q_CODE);
+  if (!roomItem || !codeItem) {
+    ui.alert("フォームの質問が見つかりません。先に「回答フォームを作成する」を実行してください。");
+    return;
+  }
+
+  const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
+  const presentation = SlidesApp.create(`${buildingName} 工事アンケートQRコード`);
+  const placeholderSlide = presentation.getSlides()[0];
+  let failedCount = 0;
+
+  entries.forEach(({ room, code }) => {
+    const formResponse = form.createResponse();
+    formResponse.withItemResponse(roomItem.asListItem().createResponse(room));
+    formResponse.withItemResponse(codeItem.asTextItem().createResponse(code));
+    const url = formResponse.toPrefilledUrl();
+
+    const slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
+
+    slide.insertTextBox(`${room} 号室`, 40, 30, 400, 50)
+      .getText().getTextStyle().setFontSize(28).setBold(true);
+    slide.insertTextBox(
+      "スマホのカメラでQRコードを読み取り、工事希望日時をご回答ください。",
+      40, 90, 550, 40
+    ).getText().getTextStyle().setFontSize(14);
+
+    const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=" + encodeURIComponent(url);
+    let inserted = false;
+    try {
+      const resp = UrlFetchApp.fetch(qrUrl, { muteHttpExceptions: true });
+      if (resp.getResponseCode() === 200) {
+        slide.insertImage(resp.getBlob(), 150, 150, 250, 250);
+        inserted = true;
+      }
+    } catch (err) {
+      inserted = false;
+    }
+    if (!inserted) {
+      failedCount += 1;
+      slide.insertTextBox(
+        `（QR画像の取得に失敗しました。下記URLを直接ご案内ください）\n${url}`,
+        40, 150, 550, 120
+      ).getText().getTextStyle().setFontSize(10);
+    }
+
+    slide.insertTextBox(
+      `確認コード: ${code}（QRコードに自動で含まれています。手入力は不要です）`,
+      40, 420, 550, 30
+    ).getText().getTextStyle().setFontSize(10);
+  });
+
+  placeholderSlide.remove();
+
+  ui.alert(
+    "各住戸専用QRコードを作成しました",
+    `スライドURL:\n${presentation.getUrl()}\n\n` +
+      "1ページ＝1住戸のQRコードです。印刷してポストや玄関先など、各住戸ごとに配布・掲示してください。\n" +
+      "QRコードには部屋番号と確認コードが埋め込まれているため、他の部屋の回答として使うことはできません。" +
+      (failedCount > 0
+        ? `\n\n※${failedCount}件はQR画像の自動取得に失敗しました。該当ページのURLを別のQR作成サイトなどでご利用ください。`
+        : ""),
+    ui.ButtonSet.OK
+  );
 }
 
 function resyncFormResponses() {
