@@ -21,7 +21,8 @@
  * オンライン回答フォーム（紙のアンケート回収の代替）:
  *   「工程表」>「回答フォームを作成する」を実行すると、入居者一覧の部屋番号を
  *   選択肢にしたGoogleフォームが作成され、このスプレッドシートに接続されます。
- *   住民がフォームに回答すると、自動的に該当する部屋番号のE列・F列に反映されます。
+ *   住民は氏名・電話番号もフォーム上で入力し、回答すると自動的に該当する
+ *   部屋番号のB列（氏名）・C列（電話）・E列（日程）・F列（備考）に反映されます。
  *
  *   「工程表」>「各住戸QRコードを作成する」を実行すると、住戸ごとに専用の
  *   QRコード（部屋番号＋確認コードを埋め込んだ回答リンク）を印刷用スライドとして
@@ -343,6 +344,8 @@ function generateKoujiSchedule() {
 
 const FORM_Q_ROOM = "部屋番号";
 const FORM_Q_CODE = "確認コード";
+const FORM_Q_NAME = "氏名";
+const FORM_Q_TEL = "電話番号";
 const FORM_Q_DATE = "工事希望日";
 const FORM_Q_TIME = "工事希望時間";
 const FORM_Q_REMARK = "オプション・ご要望";
@@ -447,7 +450,7 @@ function createOrUpdateKoujiForm() {
   ensureRoomPasswords(ss);
   const rooms = getRoomList(ss);
   if (rooms.length === 0) {
-    ui.alert("入居者一覧に部屋番号が見つかりません。先に部屋番号・氏名を入力してください。");
+    ui.alert("入居者一覧に部屋番号が見つかりません。先に部屋番号を入力してください（空室はB列に「空室」と入力）。");
     return;
   }
 
@@ -490,6 +493,17 @@ function createOrUpdateKoujiForm() {
       .setRequired(true);
   }
 
+  if (!findItemByTitle(form, FORM_Q_NAME)) {
+    form.addTextItem().setTitle(FORM_Q_NAME).setRequired(true);
+  }
+
+  if (!findItemByTitle(form, FORM_Q_TEL)) {
+    form.addTextItem()
+      .setTitle(FORM_Q_TEL)
+      .setHelpText("工事当日にご連絡が取れる番号をご記入ください。")
+      .setRequired(true);
+  }
+
   if (!findItemByTitle(form, FORM_Q_DATE)) {
     form.addDateItem().setTitle(FORM_Q_DATE).setIncludesYear(true).setRequired(true);
   }
@@ -508,6 +522,14 @@ function createOrUpdateKoujiForm() {
       ])
       .setRequired(false);
   }
+
+  // 質問の表示順を整える（IDは変わらないため、配布済みQRコードには影響しない）
+  [FORM_Q_ROOM, FORM_Q_CODE, FORM_Q_NAME, FORM_Q_TEL, FORM_Q_DATE, FORM_Q_TIME, FORM_Q_REMARK].forEach(
+    (title, index) => {
+      const item = findItemByTitle(form, title);
+      if (item) form.moveItem(item.getIndex(), index);
+    }
+  );
 
   ui.alert(
     isNew ? "回答フォームを作成しました" : "回答フォームを更新しました",
@@ -577,6 +599,11 @@ function applyFormResponse(ss, itemResponses) {
   const remarkAnswer = answers[FORM_Q_REMARK];
   const remarks = Array.isArray(remarkAnswer) ? remarkAnswer : remarkAnswer ? [remarkAnswer] : [];
   const remarkText = remarks.join("、");
+
+  const name = String(answers[FORM_Q_NAME] || "").trim();
+  const tel = String(answers[FORM_Q_TEL] || "").trim();
+  if (name) target.sheet.getRange(target.row, 2).setValue(name);
+  if (tel) target.sheet.getRange(target.row, 3).setValue(tel);
 
   target.sheet.getRange(target.row, 5).setValue(schedText);
   target.sheet.getRange(target.row, 6).setValue(remarkText);
