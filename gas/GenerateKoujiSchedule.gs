@@ -41,6 +41,12 @@
  *   まとめます。配布状況の管理・照合用の社内資料であり、全住戸の確認コードが
  *   1か所にまとまるため住民には配布しないこと。
  *
+ * 「設定」シート（無ければ「回答フォームを作成する」実行時に自動作成される）:
+ *   回答期限・問い合わせ先を1か所で管理する。ここに入力した値は、
+ *   フォームの説明文・所有者宛メール・未回答レポートに自動で反映される。
+ *   回答期限を過ぎると、日次トリガーによりフォームの回答受付が自動的に停止する
+ *   （「未回答状況レポートを表示」で、期限までの残り日数・未回答の部屋も確認できる）。
+ *
  *   詳しい手順は gas/README.md を参照してください。
  */
 
@@ -68,6 +74,8 @@ function onOpen() {
     .addItem("住戸QRコード一覧表を作成する（社内用）", "createRoomQrList")
     .addItem("所有者へ回答リンクをメールで送る", "emailAbsenteeOwners")
     .addItem("フォーム回答を再取り込み", "resyncFormResponses")
+    .addSeparator()
+    .addItem("未回答状況レポートを表示", "reportUnanswered")
     .addToUi();
 }
 
@@ -99,10 +107,15 @@ function formatRoom(room) {
   return String(room).trim();
 }
 
-// 工程表シート・フォーム取込エラーシートは部屋データとして扱わない
+// 工程表・フォーム取込エラー・QR一覧（社内用）・設定シートは部屋データとして扱わない
 function isRoomDataSheet(sheet) {
   const name = sheet.getName();
-  return name !== SCHEDULE_SHEET_NAME && name !== ERROR_SHEET_NAME;
+  return (
+    name !== SCHEDULE_SHEET_NAME &&
+    name !== ERROR_SHEET_NAME &&
+    name !== QR_LIST_SHEET_NAME &&
+    name !== SETTINGS_SHEET_NAME
+  );
 }
 
 function commonAreaDate(month, day, weekday) {
@@ -355,11 +368,14 @@ function generateKoujiSchedule() {
  * 接続する。住民の回答は自動でE列（日程）・F列（備考）に反映される。
  */
 
-// 操作方法が分からない場合の問い合わせ先。フォームの説明文・所有者宛メールに表示される。
+// 操作方法が分からない場合の問い合わせ先（既定値）。
+// 実際に使われる値は「設定」シートで上書きできる（getSettings参照）。
 const CONTACT_PHONE_LABEL = "施工会社";
 const CONTACT_PHONE_NUMBER = "052-269-9100";
-const CONTACT_PHONE = `${CONTACT_PHONE_LABEL}：${CONTACT_PHONE_NUMBER}`;
-const CONTACT_PHONE_TEL_URI = `tel:${CONTACT_PHONE_NUMBER.replace(/-/g, "")}`;
+
+function telUriFor(number) {
+  return "tel:" + String(number).replace(/[^\d+]/g, "");
+}
 
 const FORM_Q_ROOM = "部屋番号";
 const FORM_Q_CODE = "確認コード";
@@ -377,6 +393,8 @@ const ERROR_SHEET_NAME = "フォーム取込エラー";
 const CODE_COL = 7; // G列: 住戸ごとの確認コード（QRコードに埋め込む合言葉）
 const PREF_COLS = [8, 9, 10]; // H・I・J列: 第1〜第3希望
 const OWNER_EMAIL_COL = 11; // K列: 住戸に居住していない所有者（賃貸オーナー等）のメールアドレス（任意）
+const SETTINGS_SHEET_NAME = "設定";
+const CLOSE_FORM_TRIGGER_HANDLER = "closeFormIfDeadlinePassed";
 const PREF_FIELDS = [
   [FORM_Q_DATE1, FORM_Q_TIME1, true],
   [FORM_Q_DATE2, FORM_Q_TIME2, false],
@@ -484,6 +502,45 @@ function logFormError(ss, message) {
   sheet.appendRow([new Date(), message]);
 }
 
+// 回答期限・問い合わせ先を1か所で管理する「設定」シート。無ければ既定値で作成する。
+function ensureSettingsSheet(ss) {
+  let sheet = ss.getSheetByName(SETTINGS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(SETTINGS_SHEET_NAME);
+    sheet.getRange(1, 1, 1, 2)
+      .setValues([["設定項目", "値"]])
+      .setFontWeight("bold")
+      .setBackground(GRAY);
+    sheet.getRange(2, 1, 3, 2).setValues([
+      ["回答期限（例: 2026/08/10）※空欄可", ""],
+      ["問い合わせ先（表示名）", CONTACT_PHONE_LABEL],
+      ["問い合わせ先電話番号", CONTACT_PHONE_NUMBER],
+    ]);
+    sheet.setColumnWidth(1, 260);
+    sheet.setColumnWidth(2, 220);
+  }
+  return sheet;
+}
+
+// 設定シートの値を読み取る。回答期限は未入力ならnull。
+function getSettings(ss) {
+  const sheet = ensureSettingsSheet(ss);
+  const values = sheet.getRange(2, 1, 3, 2).getValues();
+  const deadlineRaw = values[0][1];
+  const contactLabel = String(values[1][1] || CONTACT_PHONE_LABEL).trim();
+  const contactNumber = String(values[2][1] || CONTACT_PHONE_NUMBER).trim();
+
+  let deadline = null;
+  if (Object.prototype.toString.call(deadlineRaw) === "[object Date]") {
+    deadline = deadlineRaw;
+  } else if (deadlineRaw) {
+    const parsed = new Date(String(deadlineRaw));
+    if (!isNaN(parsed.getTime())) deadline = parsed;
+  }
+
+  return { deadline, contactLabel, contactNumber };
+}
+
 function createOrUpdateKoujiForm() {
   const ui = SpreadsheetApp.getUi();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -516,11 +573,26 @@ function createOrUpdateKoujiForm() {
     ScriptApp.newTrigger("onKoujiFormSubmit").forForm(form).onFormSubmit().create();
   }
 
-  // 説明文は毎回更新する（既存フォームに問い合わせ先などを反映するため）
+  // 「設定」シートの回答期限を過ぎたら自動でフォームを締め切るための日次トリガーを
+  // （まだ無ければ）用意する。判定・締切処理自体は closeFormIfDeadlinePassed が行う。
+  const hasCloseTrigger = ScriptApp.getProjectTriggers().some(
+    (t) => t.getHandlerFunction() === CLOSE_FORM_TRIGGER_HANDLER
+  );
+  if (!hasCloseTrigger) {
+    ScriptApp.newTrigger(CLOSE_FORM_TRIGGER_HANDLER).timeBased().everyDays(1).atHour(0).create();
+  }
+
+  // 説明文は毎回更新する（既存フォームに問い合わせ先・回答期限などを反映するため）
+  const settings = getSettings(ss);
+  const contactText = `${settings.contactLabel}：${settings.contactNumber}`;
+  const deadlineText = settings.deadline
+    ? `回答期限：${Utilities.formatDate(settings.deadline, Session.getScriptTimeZone(), "yyyy年M月d日")}まで\n\n`
+    : "";
   form.setDescription(
     "工事の希望日時を第1希望〜第3希望までご回答ください（第2・第3希望は任意です）。\n" +
       "同じ部屋番号で再度回答すると、内容は最新の回答で上書きされます。\n\n" +
-      `スマートフォンの操作でご不明な点がございましたら、${CONTACT_PHONE}までお電話ください。` +
+      deadlineText +
+      `スマートフォンの操作でご不明な点がございましたら、${contactText}までお電話ください。` +
       "ご本人以外（ご家族など）が代わりにご回答いただいても構いません。"
   );
 
@@ -602,6 +674,35 @@ function createOrUpdateKoujiForm() {
       "住戸ごとに専用のQRコード（他の部屋の回答には使えません）を印刷用スライドとして生成できます。",
     ui.ButtonSet.OK
   );
+}
+
+// 日次トリガーから呼ばれる。「設定」シートの回答期限を過ぎていたら、
+// フォームの新規回答受付を自動的に停止する。UIを持たないため通知はしない。
+function closeFormIfDeadlinePassed() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const settings = getSettings(ss);
+  if (!settings.deadline) return;
+
+  const props = PropertiesService.getDocumentProperties();
+  const formId = props.getProperty(FORM_ID_PROP);
+  if (!formId) return;
+
+  // 締切日の終わり（23:59:59）までは受け付ける
+  const deadlineEnd = new Date(
+    settings.deadline.getFullYear(),
+    settings.deadline.getMonth(),
+    settings.deadline.getDate() + 1
+  );
+  if (new Date() < deadlineEnd) return;
+
+  const form = FormApp.openById(formId);
+  if (form.isAcceptingResponses()) {
+    form.setAcceptingResponses(false);
+    form.setCustomClosedFormMessage(
+      "回答期限を過ぎたため、このフォームでの受付は終了しました。" +
+        `ご不明な点は${settings.contactLabel}：${settings.contactNumber}までお問い合わせください。`
+    );
+  }
 }
 
 function weekdayJP(year, month, day) {
@@ -917,6 +1018,10 @@ function emailAbsenteeOwners() {
   }
 
   const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
+  const settings = getSettings(ss);
+  const deadlineLine = settings.deadline
+    ? `回答期限：${Utilities.formatDate(settings.deadline, Session.getScriptTimeZone(), "yyyy年M月d日")}まで\n\n`
+    : "";
   let sentCount = 0;
   const failed = [];
 
@@ -947,20 +1052,24 @@ function emailAbsenteeOwners() {
         `${room}号室の所有者様\n\n` +
         "平素より大変お世話になっております。インターホン・自動火災報知設備の取替工事にあたり、" +
         "工事希望日時のご回答をお願いしております。\n\n" +
+        deadlineLine +
         "以下のリンクより、工事希望日時（第1〜第3希望。第1希望のみ必須）をご回答ください。\n" +
         `${url}\n\n` +
         `※このリンクは${room}号室専用です。他の住戸の回答にはご利用いただけません。\n` +
         "※実際にお住まいの方がいらっしゃる場合は、そちらの方にご回答いただいても構いません。\n\n" +
-        `ご不明な点がございましたら、${CONTACT_PHONE}までお問い合わせください。`;
+        `ご不明な点がございましたら、${settings.contactLabel}：${settings.contactNumber}までお問い合わせください。`;
       const htmlBody =
         `<p>${room}号室の所有者様</p>` +
         "<p>平素より大変お世話になっております。インターホン・自動火災報知設備の取替工事にあたり、" +
         "工事希望日時のご回答をお願いしております。</p>" +
+        (settings.deadline
+          ? `<p>回答期限：${Utilities.formatDate(settings.deadline, Session.getScriptTimeZone(), "yyyy年M月d日")}まで</p>`
+          : "") +
         `<p><a href="${url}">こちらのリンクより工事希望日時（第1〜第3希望。第1希望のみ必須）をご回答ください</a></p>` +
         `<p>※このリンクは${room}号室専用です。他の住戸の回答にはご利用いただけません。<br>` +
         "※実際にお住まいの方がいらっしゃる場合は、そちらの方にご回答いただいても構いません。</p>" +
-        `<p>ご不明な点がございましたら、${CONTACT_PHONE_LABEL}` +
-        `<a href="${CONTACT_PHONE_TEL_URI}">${CONTACT_PHONE_NUMBER}</a>までお問い合わせください。</p>`;
+        `<p>ご不明な点がございましたら、${settings.contactLabel}` +
+        `<a href="${telUriFor(settings.contactNumber)}">${settings.contactNumber}</a>までお問い合わせください。</p>`;
 
       try {
         MailApp.sendEmail({ to: ownerEmail, subject, body: plainBody, htmlBody });
@@ -1002,4 +1111,39 @@ function resyncFormResponses() {
   const responses = form.getResponses();
   responses.forEach((response) => applyFormResponse(ss, response.getItemResponses()));
   ui.alert(`${responses.length}件の回答を取り込みました。`);
+}
+
+// 「設定」シートの回答期限を基準に、未回答の部屋数・一覧を表示する。
+function reportUnanswered() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const settings = getSettings(ss);
+  const { notSubmitted } = collectRoomData(ss);
+
+  let deadlineText = "回答期限：未設定（「設定」シートに入力すると表示されます）";
+  if (settings.deadline) {
+    const deadlineStr = Utilities.formatDate(settings.deadline, Session.getScriptTimeZone(), "yyyy年M月d日");
+    const today = new Date();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const deadlineMidnight = new Date(
+      settings.deadline.getFullYear(),
+      settings.deadline.getMonth(),
+      settings.deadline.getDate()
+    );
+    const diffDays = Math.round((deadlineMidnight - todayMidnight) / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) {
+      deadlineText = `回答期限：${deadlineStr}（あと${diffDays}日）`;
+    } else if (diffDays === 0) {
+      deadlineText = `回答期限：${deadlineStr}（本日締切）`;
+    } else {
+      deadlineText = `回答期限：${deadlineStr}（${-diffDays}日超過）`;
+    }
+  }
+
+  const message =
+    `${deadlineText}\n\n` +
+    `未回答：${notSubmitted.length}件\n` +
+    (notSubmitted.length > 0 ? notSubmitted.join("、") : "（すべての部屋が回答済みです）");
+
+  ui.alert("未回答状況レポート", message, ui.ButtonSet.OK);
 }
