@@ -80,7 +80,7 @@ function setupSurveyLinks() {
   if (lastRow < 2) return;
 
   const numRows = lastRow - 1;
-  const data = sheet.getRange(2, 1, numRows, 6).getValues();
+  const data = sheet.getRange(2, 1, numRows, 5).getValues();
 
   for (let i = 0; i < data.length; i++) {
     const room = data[i][0];
@@ -92,7 +92,6 @@ function setupSurveyLinks() {
     if (!token) token = generateToken_();
 
     const url = `${webAppUrl}?t=${token}`;
-    const qr = `=IMAGE("https://api.qrserver.com/v1/create-qr-code/?size=160x160&data="&ENCODEURL("${url}"))`;
 
     data[i][2] = password;
     data[i][3] = token;
@@ -253,7 +252,7 @@ function allocateSurveySchedule() {
     let placed = false;
     for (let rank = 0; rank < r.choices.length; rank++) {
       const c = r.choices[rank];
-      if (!c.date || !c.hour) continue;
+      if (!c.date || c.hour === "") continue;
       const key = `${c.date}|${c.hour}`;
       if (!takenSlots.has(key)) {
         takenSlots.add(key);

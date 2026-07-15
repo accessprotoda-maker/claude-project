@@ -56,8 +56,16 @@
         choice3: { date: document.getElementById('date3').value, hour: document.getElementById('hour3').value },
       };
 
+      var timer = setTimeout(function () {
+        var msg = document.getElementById('message');
+        msg.textContent = '通信がタイムアウトしました。もう一度お試しください。';
+        msg.className = 'ng';
+        btn.disabled = false;
+      }, 30000);
+
       google.script.run
         .withSuccessHandler(function (res) {
+          clearTimeout(timer);
           var msg = document.getElementById('message');
           msg.textContent = res.message;
           msg.className = res.ok ? 'ok' : 'ng';
@@ -68,6 +76,7 @@
           }
         })
         .withFailureHandler(function (err) {
+          clearTimeout(timer);
           var msg = document.getElementById('message');
           msg.textContent = '送信に失敗しました: ' + err.message;
           msg.className = 'ng';
