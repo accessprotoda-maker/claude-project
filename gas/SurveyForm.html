@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 16px; }
+    h1 { font-size: 18px; }
+    fieldset { margin-bottom: 16px; border: 1px solid #ccc; border-radius: 6px; }
+    label { display: block; margin: 8px 0 4px; }
+    input, select { width: 100%; padding: 8px; box-sizing: border-box; font-size: 16px; }
+    button { width: 100%; padding: 12px; font-size: 16px; background: #1a73e8; color: #fff; border: none; border-radius: 6px; }
+    button:disabled { background: #999; }
+    #message { margin-top: 12px; font-weight: bold; }
+    .ok { color: #008000; }
+    .ng { color: #d00; }
+  </style>
+</head>
+<body>
+  <h1>工事日程アンケート（部屋番号: <?= room ?>）</h1>
+  <p>パスワードを入力し、ご希望の日程を第1〜第3希望までご入力ください。</p>
+
+  <form id="surveyForm">
+    <label for="password">パスワード</label>
+    <input type="text" id="password" required>
+
+    <? for (var i = 1; i <= 3; i++) { ?>
+    <fieldset>
+      <legend>第<?= i ?>希望</legend>
+      <label for="date<?= i ?>">日付</label>
+      <input type="date" id="date<?= i ?>" required>
+      <label for="hour<?= i ?>">時間帯</label>
+      <select id="hour<?= i ?>" required>
+        <option value="">選択してください</option>
+        <? timeSlots.forEach(function(h) { ?>
+          <option value="<?= h ?>"><?= h ?>時頃</option>
+        <? }); ?>
+      </select>
+    </fieldset>
+    <? } ?>
+
+    <button type="submit" id="submitBtn">送信する</button>
+  </form>
+  <div id="message"></div>
+
+  <script>
+    document.getElementById('surveyForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+
+      var payload = {
+        token: '<?= token ?>',
+        password: document.getElementById('password').value,
+        choice1: { date: document.getElementById('date1').value, hour: document.getElementById('hour1').value },
+        choice2: { date: document.getElementById('date2').value, hour: document.getElementById('hour2').value },
+        choice3: { date: document.getElementById('date3').value, hour: document.getElementById('hour3').value },
+      };
+
+      var timer = setTimeout(function () {
+        var msg = document.getElementById('message');
+        msg.textContent = '通信がタイムアウトしました。もう一度お試しください。';
+        msg.className = 'ng';
+        btn.disabled = false;
+      }, 30000);
+
+      google.script.run
+        .withSuccessHandler(function (res) {
+          clearTimeout(timer);
+          var msg = document.getElementById('message');
+          msg.textContent = res.message;
+          msg.className = res.ok ? 'ok' : 'ng';
+          if (res.ok) {
+            document.getElementById('surveyForm').style.display = 'none';
+          } else {
+            btn.disabled = false;
+          }
+        })
+        .withFailureHandler(function (err) {
+          clearTimeout(timer);
+          var msg = document.getElementById('message');
+          msg.textContent = '送信に失敗しました: ' + err.message;
+          msg.className = 'ng';
+          btn.disabled = false;
+        })
+        .verifyAndSaveSurvey(payload);
+    });
+  </script>
+</body>
+</html>
