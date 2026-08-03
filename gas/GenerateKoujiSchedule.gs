@@ -13,6 +13,9 @@
  *   1行目: タイトル（A1: 物件名）
  *   2行目: 見出し（部屋番号, 氏名, 電話, 携帯, 日程, 備考, 確認コード, 第1希望, 第2希望, 第3希望, 所有者メール）
  *   3行目以降: データ
+ *   （A1が空欄ならセルのメモに「物件名を入力してください」、2行目のA〜F列が空欄なら
+ *    見出し文字列とメモを自動で設定する。いずれかのメニューを一度実行すれば反映される。
+ *    既に値が入っているセルは上書きしない）
  *     A列: 部屋番号
  *     B列: 氏名（「空室」の場合は空室として表示）
  *     E列: 日程（工程表の作成に使われる「確定日程」。既定では第1希望が入る。
@@ -421,6 +424,27 @@ function generatePassword() {
 function ensureSheetLayout(ss) {
   ss.getSheets().forEach((sheet) => {
     if (!isRoomDataSheet(sheet)) return;
+
+    // 入力ガイド：「1行目=物件名、2行目=見出し、3行目以降=部屋データ」という決まった
+    // レイアウトを、記入する場所そのものに明記する（行数の少ない新規シートでも設定されるよう、
+    // 下の行数チェックより前に置く）。
+    if (!sheet.getRange(1, 1).getValue() && !sheet.getRange(1, 1).getNote()) {
+      sheet.getRange(1, 1).setNote(
+        "ここに物件名（マンション名）を入力してください。\n" +
+          "1行目=物件名、2行目=見出し、3行目以降が部屋データです。"
+      );
+    }
+    const roomHeaderWasBlank = !sheet.getRange(2, 1).getValue();
+    ["部屋番号", "氏名", "電話", "携帯", "日程", "備考"].forEach((label, i) => {
+      const col = i + 1;
+      if (!sheet.getRange(2, col).getValue()) {
+        sheet.getRange(2, col).setValue(label);
+      }
+    });
+    if (roomHeaderWasBlank && !sheet.getRange(2, 1).getNote()) {
+      sheet.getRange(2, 1).setNote("この行は見出し行です。部屋番号のデータは3行目から入力してください。");
+    }
+
     const lastRow = sheet.getLastRow();
     if (lastRow < 3) return;
 
