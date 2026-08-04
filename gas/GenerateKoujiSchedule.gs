@@ -628,7 +628,9 @@ function createOrUpdateKoujiForm() {
     ScriptApp.newTrigger(CLOSE_FORM_TRIGGER_HANDLER).timeBased().everyDays(1).atHour(0).create();
   }
 
-  // 説明文は毎回更新する（既存フォームに問い合わせ先・回答期限などを反映するため）
+  // タイトル・説明文は毎回更新する（入居者一覧のA1（物件名）を後から修正した場合や、
+  // 問い合わせ先・回答期限の変更を、既存フォームにも反映するため）
+  form.setTitle(`${buildingName} 工事日程アンケート`);
   const settings = getSettings(ss);
   const contactText = `${settings.contactLabel}：${settings.contactNumber}`;
   const deadlineText = settings.deadline
