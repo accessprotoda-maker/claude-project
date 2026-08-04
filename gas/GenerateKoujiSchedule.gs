@@ -70,6 +70,8 @@ const DATE_RE = /(\d{1,2})[/月](\d{1,2})日?[（(](.)[）)]\s*(\d{1,2})[:：](\
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("工程表")
+    .addItem("★初期セットアップを一括実行", "runInitialSetup")
+    .addSeparator()
     .addItem("工程表を作成", "generateKoujiSchedule")
     .addSeparator()
     .addItem("回答フォームを作成する", "createOrUpdateKoujiForm")
@@ -80,6 +82,26 @@ function onOpen() {
     .addSeparator()
     .addItem("未回答状況レポートを表示", "reportUnanswered")
     .addToUi();
+}
+
+// 新しい建物で使い始める際のショートカット。
+// 「回答フォームを作成する」→「各住戸QRコードを作成する」→
+// 「住戸QRコード一覧表を作成する（社内用）」を順番にまとめて実行する。
+// 各ステップの完了ダイアログはそのまま表示される（OKを押すと次のステップに進む）。
+function runInitialSetup() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const rooms = getRoomList(ss);
+  if (rooms.length === 0) {
+    ui.alert(
+      "入居者一覧に部屋番号が見つかりません。先に入居者一覧のA列に部屋番号を入力してから" +
+        "実行してください（空室はB列に「空室」と入力）。"
+    );
+    return;
+  }
+  createOrUpdateKoujiForm();
+  createPerRoomQrSlips();
+  createRoomQrList();
 }
 
 function parseSchedule(text) {
