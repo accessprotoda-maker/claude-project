@@ -998,6 +998,13 @@ function fetchQrImageBlob(dataUrl) {
   return null;
 }
 
+// 部屋番号タイトルを縦書き風に変換する（例: "101" -> "1\n0\n1\n号\n室"）。
+// Slides APIには本物の縦書き（文字を正立させたまま上から下に流し込む設定）が無いため、
+// 1文字ずつ改行して縦長のテキストボックスに配置することで近い見た目にする。
+function verticalRoomTitle(room) {
+  return Array.from(`${room}号室`).join("\n");
+}
+
 // 住戸ごとに「部屋番号＋確認コード」を埋め込んだ回答用URLをQRコード化し、
 // 1住戸1ページの印刷用Googleスライドとして生成する。
 // 他の部屋のQRコードを使って回答しても、確認コードが一致しないため反映されない。
@@ -1039,8 +1046,9 @@ function createPerRoomQrSlips() {
 
     const slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
 
-    slide.insertTextBox(`${room} 号室`, 40, 30, 400, 50)
-      .getText().getTextStyle().setFontSize(28).setBold(true);
+    const titleShape = slide.insertTextBox(verticalRoomTitle(room), 615, 20, 70, 260);
+    titleShape.getText().getTextStyle().setFontSize(28).setBold(true);
+    titleShape.getText().getParagraphStyle().setAlignment(SlidesApp.ParagraphAlignment.CENTER);
     slide.insertTextBox(
       "スマホのカメラでQRコードを読み取り、工事希望日時をご回答ください。",
       40, 90, 550, 40
