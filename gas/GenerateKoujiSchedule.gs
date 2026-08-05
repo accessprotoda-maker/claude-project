@@ -45,10 +45,17 @@
  *   1か所にまとまるため住民には配布しないこと。
  *
  * 「設定」シート（無ければ「回答フォームを作成する」実行時に自動作成される）:
- *   回答期限・問い合わせ先を1か所で管理する。ここに入力した値は、
+ *   回答期限・問い合わせ先・担当者通知メールを1か所で管理する。ここに入力した値は、
  *   フォームの説明文・所有者宛メール・未回答レポートに自動で反映される。
  *   回答期限を過ぎると、日次トリガーによりフォームの回答受付が自動的に停止する
  *   （「未回答状況レポートを表示」で、期限までの残り日数・未回答の部屋も確認できる）。
+ *
+ * 日程の重複チェック:
+ *   複数の部屋が同じ日時（E列）を確定日程として選んでいる場合、住民の回答が
+ *   反映されるたびに自動でチェックされ、該当するE列のセルがピンク色で強調表示される
+ *   （メモに重複している部屋番号が記載される）。「設定」シートに担当者通知メールを
+ *   入力しておくと、重複が発生するたびにそのアドレス宛にメールで通知される。
+ *   「工程表」>「日程重複チェックを表示」でいつでも一覧確認・再チェックできる。
  *
  *   詳しい手順は gas/README.md を参照してください。
  */
@@ -79,6 +86,7 @@ function onOpen() {
     .addItem("住戸QRコード一覧表を作成する（社内用）", "createRoomQrList")
     .addItem("所有者へ回答リンクをメールで送る", "emailAbsenteeOwners")
     .addItem("フォーム回答を再取り込み", "resyncFormResponses")
+    .addItem("日程重複チェックを表示", "reportScheduleConflicts")
     .addSeparator()
     .addItem("未回答状況レポートを表示", "reportUnanswered")
     .addToUi();
@@ -201,6 +209,7 @@ function collectRoomData(ss) {
 
 function generateKoujiSchedule() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  checkAndFlagConflicts(ss);
   const { buildingName, dates, outOfPeriod, vacant, notSubmitted } = collectRoomData(ss);
 
   let sheet = ss.getSheetByName(SCHEDULE_SHEET_NAME);
@@ -549,32 +558,47 @@ function logFormError(ss, message) {
 }
 
 // 回答期限・問い合わせ先を1か所で管理する「設定」シート。無ければ既定値で作成する。
+// 既存の設定シート（項目が3行しかない古いバージョン）にも、無い項目だけ追加する。
 function ensureSettingsSheet(ss) {
   let sheet = ss.getSheetByName(SETTINGS_SHEET_NAME);
-  if (!sheet) {
+  const isNew = !sheet;
+  if (isNew) {
     sheet = ss.insertSheet(SETTINGS_SHEET_NAME);
     sheet.getRange(1, 1, 1, 2)
       .setValues([["設定項目", "値"]])
       .setFontWeight("bold")
       .setBackground(GRAY);
-    sheet.getRange(2, 1, 3, 2).setValues([
-      ["回答期限（例: 2026/08/10）※空欄可", ""],
-      ["問い合わせ先（表示名）", CONTACT_PHONE_LABEL],
-      ["問い合わせ先電話番号", CONTACT_PHONE_NUMBER],
-    ]);
     sheet.setColumnWidth(1, 260);
     sheet.setColumnWidth(2, 220);
   }
+
+  const rows = [
+    ["回答期限（例: 2026/08/10）※空欄可", ""],
+    ["問い合わせ先（表示名）", CONTACT_PHONE_LABEL],
+    ["問い合わせ先電話番号", CONTACT_PHONE_NUMBER],
+    ["担当者通知メール（任意・日程重複時に通知）", ""],
+  ];
+  rows.forEach(([label, defaultValue], i) => {
+    const row = 2 + i;
+    if (!sheet.getRange(row, 1).getValue()) {
+      sheet.getRange(row, 1).setValue(label);
+    }
+    if (isNew) {
+      sheet.getRange(row, 2).setValue(defaultValue);
+    }
+  });
+
   return sheet;
 }
 
 // 設定シートの値を読み取る。回答期限は未入力ならnull。
 function getSettings(ss) {
   const sheet = ensureSettingsSheet(ss);
-  const values = sheet.getRange(2, 1, 3, 2).getValues();
+  const values = sheet.getRange(2, 1, 4, 2).getValues();
   const deadlineRaw = values[0][1];
   const contactLabel = String(values[1][1] || CONTACT_PHONE_LABEL).trim();
   const contactNumber = String(values[2][1] || CONTACT_PHONE_NUMBER).trim();
+  const notifyEmail = String(values[3][1] || "").trim();
 
   let deadline = null;
   if (Object.prototype.toString.call(deadlineRaw) === "[object Date]") {
@@ -584,7 +608,87 @@ function getSettings(ss) {
     if (!isNaN(parsed.getTime())) deadline = parsed;
   }
 
-  return { deadline, contactLabel, contactNumber };
+  return { deadline, contactLabel, contactNumber, notifyEmail };
+}
+
+const CONFLICT_NOTE_PREFIX = "⚠ 日程が重複しています：";
+const CONFLICT_BACKGROUND = "#FF9999";
+
+// 入居者一覧のE列（確定日程）を全シート横断でチェックし、同じ日時が複数の部屋に
+// 設定されていれば、該当セルをピンク色で強調表示・メモ追記する。
+// 前回のチェックで付けた強調は、このチェック時点の最新状態に基づいて一旦クリアしてから
+// 付け直すため、解消済みの重複は自動的に元の表示に戻る。
+// 戻り値は重複グループの配列（{schedText, entries:[{room, sheet, row}]}）。
+function checkAndFlagConflicts(ss) {
+  const bySchedule = {};
+  const cells = [];
+
+  ss.getSheets().forEach((sheet) => {
+    if (!isRoomDataSheet(sheet)) return;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 3) return;
+    const values = sheet.getRange(3, 1, lastRow - 2, 5).getValues();
+    values.forEach((row, i) => {
+      const roomRaw = row[0];
+      const name = row[1];
+      if (roomRaw === "" || roomRaw === null) return;
+      if (String(name || "") === "空室") return;
+      const rowNum = i + 3;
+      cells.push({ sheet, row: rowNum });
+
+      const schedText = String(row[4] || "").trim();
+      if (!schedText) return;
+      const room = formatRoom(roomRaw);
+      if (!bySchedule[schedText]) bySchedule[schedText] = [];
+      bySchedule[schedText].push({ room, sheet, row: rowNum });
+    });
+  });
+
+  cells.forEach(({ sheet, row }) => {
+    const cell = sheet.getRange(row, 5);
+    if (String(cell.getNote() || "").indexOf(CONFLICT_NOTE_PREFIX) === 0) {
+      cell.setNote("");
+    }
+    cell.setBackground(null);
+  });
+
+  const conflicts = Object.keys(bySchedule)
+    .map((schedText) => ({ schedText, entries: bySchedule[schedText] }))
+    .filter((c) => c.entries.length > 1);
+
+  conflicts.forEach((c) => {
+    const roomList = c.entries.map((e) => e.room).join("、");
+    c.entries.forEach(({ sheet, row }) => {
+      const cell = sheet.getRange(row, 5);
+      cell.setBackground(CONFLICT_BACKGROUND);
+      cell.setNote(`${CONFLICT_NOTE_PREFIX}${roomList}（${c.schedText}）`);
+    });
+  });
+
+  return conflicts;
+}
+
+// メニュー「日程重複チェックを表示」から実行する。
+function reportScheduleConflicts() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const conflicts = checkAndFlagConflicts(ss);
+
+  if (conflicts.length === 0) {
+    ui.alert("日程の重複チェック", "重複している日程はありません。", ui.ButtonSet.OK);
+    return;
+  }
+
+  const message = conflicts
+    .map((c) => `${c.schedText}：${c.entries.map((e) => e.room).join("、")}`)
+    .join("\n");
+  ui.alert(
+    "日程の重複チェック",
+    "以下の日時が複数の部屋で重複しています（入居者一覧のE列がピンク色で表示されます）。\n" +
+      "「工程表を作成」の前に、いずれかの部屋のE列を第2・第3希望などに書き換えてください。\n\n" +
+      message,
+    ui.ButtonSet.OK
+  );
 }
 
 function createOrUpdateKoujiForm() {
@@ -843,6 +947,29 @@ function applyFormResponse(ss, itemResponses) {
   PREF_COLS.forEach((col, i) => {
     target.sheet.getRange(target.row, col).setValue(preferences[i] || "");
   });
+
+  // 他の部屋と確定日程（E列）が重複していないか確認し、重複していればセルを
+  // 強調表示した上で、「設定」シートに担当者通知メールが設定されていれば通知する。
+  const conflicts = checkAndFlagConflicts(ss);
+  const myConflict = conflicts.find((c) => c.entries.some((entry) => entry.room === room));
+  if (myConflict) {
+    const settings = getSettings(ss);
+    if (settings.notifyEmail) {
+      try {
+        MailApp.sendEmail({
+          to: settings.notifyEmail,
+          subject: `【日程重複】${myConflict.schedText} に複数の部屋が重複しています`,
+          body:
+            `以下の部屋が同じ日時（${myConflict.schedText}）で回答しています。\n` +
+            `該当部屋：${myConflict.entries.map((e) => e.room).join("、")}\n\n` +
+            "入居者一覧のE列（該当セルはピンク色で表示されます）を確認し、" +
+            "いずれかの部屋の日程を第2・第3希望などに調整してください。",
+        });
+      } catch (err) {
+        logFormError(ss, `日程重複の通知メール送信に失敗しました（${err}）。`);
+      }
+    }
+  }
 }
 
 function onKoujiFormSubmit(e) {
