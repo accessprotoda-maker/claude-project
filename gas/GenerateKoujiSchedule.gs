@@ -1050,7 +1050,7 @@ function createPerRoomQrSlips() {
     titleShape.getText().getTextStyle().setFontSize(28).setBold(true);
     titleShape.getText().getParagraphStyle().setAlignment(SlidesApp.ParagraphAlignment.CENTER);
     slide.insertTextBox(
-      "スマホのカメラでQRコードを読み取り、工事希望日時をご回答ください。",
+      "📱 スマホでぴっと読み取るだけ！QRコードをかざして、工事の希望日時をご回答ください。",
       40, 90, 550, 40
     ).getText().getTextStyle().setFontSize(14);
 
