@@ -1033,6 +1033,7 @@ function createPerRoomQrSlips() {
     return;
   }
 
+  const settings = getSettings(ss);
   const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
   const presentation = SlidesApp.create(`${buildingName} 工事アンケートQRコード`);
   const placeholderSlide = presentation.getSlides()[0];
@@ -1050,27 +1051,28 @@ function createPerRoomQrSlips() {
     titleShape.getText().getTextStyle().setFontSize(28).setBold(true);
     titleShape.getText().getParagraphStyle().setAlignment(SlidesApp.ParagraphAlignment.CENTER);
     slide.insertTextBox(
-      "📱 スマホでぴっと読み取るだけ！QRコードをかざして、工事の希望日時をご回答ください。",
-      40, 90, 550, 40
+      "📱 スマホでぴっと読み取るだけ！QRコードをかざして、工事の希望日時をご回答ください。\n" +
+        `📞 お電話でのご案内をご希望の方は、${settings.contactLabel}（${settings.contactNumber}）までご連絡ください。`,
+      40, 90, 550, 70
     ).getText().getTextStyle().setFontSize(14);
 
     const blob = fetchQrImageBlob(url);
     let inserted = false;
     if (blob) {
-      slide.insertImage(blob, 150, 150, 250, 250);
+      slide.insertImage(blob, 150, 180, 250, 250);
       inserted = true;
     }
     if (!inserted) {
       failedCount += 1;
       slide.insertTextBox(
         `（QR画像の取得に失敗しました。下記URLを直接ご案内ください）\n${url}`,
-        40, 150, 550, 120
+        40, 180, 550, 120
       ).getText().getTextStyle().setFontSize(10);
     }
 
     slide.insertTextBox(
       `確認コード: ${code}（QRコードに自動で含まれています。手入力は不要です）`,
-      40, 420, 550, 30
+      40, 450, 550, 30
     ).getText().getTextStyle().setFontSize(10);
   });
 
