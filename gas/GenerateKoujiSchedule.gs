@@ -588,6 +588,7 @@ function ensureSettingsSheet(ss) {
     ["問い合わせ先電話番号", CONTACT_PHONE_NUMBER],
     ["担当者通知メール（任意・日程重複時に通知）", ""],
     ["マザースプレッドシートのURL（任意・データ集約用）", ""],
+    ["工事の種別（例: インターホン・自動火災報知設備工事）", ""],
   ];
   rows.forEach(([label, defaultValue], i) => {
     const row = 2 + i;
@@ -613,12 +614,13 @@ function extractSpreadsheetId(urlOrId) {
 // 設定シートの値を読み取る。回答期限は未入力ならnull。
 function getSettings(ss) {
   const sheet = ensureSettingsSheet(ss);
-  const values = sheet.getRange(2, 1, 5, 2).getValues();
+  const values = sheet.getRange(2, 1, 6, 2).getValues();
   const deadlineRaw = values[0][1];
   const contactLabel = String(values[1][1] || CONTACT_PHONE_LABEL).trim();
   const contactNumber = String(values[2][1] || CONTACT_PHONE_NUMBER).trim();
   const notifyEmail = String(values[3][1] || "").trim();
   const motherSheetId = extractSpreadsheetId(values[4][1]);
+  const workType = String(values[5][1] || "").trim();
 
   let deadline = null;
   if (Object.prototype.toString.call(deadlineRaw) === "[object Date]") {
@@ -628,26 +630,28 @@ function getSettings(ss) {
     if (!isNaN(parsed.getTime())) deadline = parsed;
   }
 
-  return { deadline, contactLabel, contactNumber, notifyEmail, motherSheetId };
+  return { deadline, contactLabel, contactNumber, notifyEmail, motherSheetId, workType };
 }
 
 const MOTHER_SHEET_NAME = "集約データ（マザーシート）";
 const MOTHER_HEADERS = [
-  "物件名", "部屋番号", "氏名", "電話", "携帯", "確定日程", "備考",
+  "物件名", "工事の種別", "部屋番号", "氏名", "電話", "携帯", "確定日程", "備考",
   "第1希望", "第2希望", "第3希望", "最終更新日時",
 ];
 
 // マザースプレッドシート側に集約データシートが無ければ、見出し付きで作成する。
+// 見出し行は毎回最新のMOTHER_HEADERSで上書きする（列を追加した場合も、既存の
+// マザーシートを作り直さずに済むようにするため。データ行には影響しない）。
 function ensureMotherSheet(motherSs) {
   let sheet = motherSs.getSheetByName(MOTHER_SHEET_NAME);
   if (!sheet) {
     sheet = motherSs.insertSheet(MOTHER_SHEET_NAME);
-    sheet.getRange(1, 1, 1, MOTHER_HEADERS.length)
-      .setValues([MOTHER_HEADERS])
-      .setFontWeight("bold")
-      .setBackground(GRAY);
     sheet.setFrozenRows(1);
   }
+  sheet.getRange(1, 1, 1, MOTHER_HEADERS.length)
+    .setValues([MOTHER_HEADERS])
+    .setFontWeight("bold")
+    .setBackground(GRAY);
   return sheet;
 }
 
@@ -693,6 +697,7 @@ function syncToMotherSheet(ss) {
       if (roomRaw === "" || roomRaw === null) return;
       rowsToAppend.push([
         buildingName,
+        settings.workType,
         formatRoom(roomRaw),
         row[1], // 氏名
         row[2], // 電話
