@@ -57,6 +57,14 @@
  *   入力しておくと、重複が発生するたびにそのアドレス宛にメールで通知される。
  *   「工程表」>「日程重複チェックを表示」でいつでも一覧確認・再チェックできる。
  *
+ * マザースプレッドシートへのデータ集約（複数建物を横断して閲覧したい場合）:
+ *   「設定」シートに、あらかじめ用意した集約用の空のGoogleスプレッドシートのURLを
+ *   入力しておくと、住民の回答が反映されるたび（および「★初期セットアップを一括実行」
+ *   実行時）に、この建物の部屋データ（確認コードを除く）がそのスプレッドシートの
+ *   「集約データ（マザーシート）」シートに自動で書き込まれる。複数の建物で同じ
+ *   マザースプレッドシートのURLを設定すれば、1か所で全建物の状況を横断的に閲覧できる。
+ *   「工程表」>「マザーデータへ同期する」でいつでも手動同期もできる。
+ *
  *   詳しい手順は gas/README.md を参照してください。
  */
 
@@ -87,6 +95,7 @@ function onOpen() {
     .addItem("所有者へ回答リンクをメールで送る", "emailAbsenteeOwners")
     .addItem("フォーム回答を再取り込み", "resyncFormResponses")
     .addItem("日程重複チェックを表示", "reportScheduleConflicts")
+    .addItem("マザーデータへ同期する", "syncToMotherSheetManual")
     .addSeparator()
     .addItem("未回答状況レポートを表示", "reportUnanswered")
     .addToUi();
@@ -110,6 +119,7 @@ function runInitialSetup() {
   createOrUpdateKoujiForm();
   createPerRoomQrSlips();
   createRoomQrList();
+  syncToMotherSheet(ss);
 }
 
 function parseSchedule(text) {
@@ -577,6 +587,7 @@ function ensureSettingsSheet(ss) {
     ["問い合わせ先（表示名）", CONTACT_PHONE_LABEL],
     ["問い合わせ先電話番号", CONTACT_PHONE_NUMBER],
     ["担当者通知メール（任意・日程重複時に通知）", ""],
+    ["マザースプレッドシートのURL（任意・データ集約用）", ""],
   ];
   rows.forEach(([label, defaultValue], i) => {
     const row = 2 + i;
@@ -591,14 +602,23 @@ function ensureSettingsSheet(ss) {
   return sheet;
 }
 
+// GoogleスプレッドシートのURLからスプレッドシートIDを取り出す。
+// 既にIDだけが入力されている場合はそのまま返す。
+function extractSpreadsheetId(urlOrId) {
+  const str = String(urlOrId || "").trim();
+  const m = /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/.exec(str);
+  return m ? m[1] : str;
+}
+
 // 設定シートの値を読み取る。回答期限は未入力ならnull。
 function getSettings(ss) {
   const sheet = ensureSettingsSheet(ss);
-  const values = sheet.getRange(2, 1, 4, 2).getValues();
+  const values = sheet.getRange(2, 1, 5, 2).getValues();
   const deadlineRaw = values[0][1];
   const contactLabel = String(values[1][1] || CONTACT_PHONE_LABEL).trim();
   const contactNumber = String(values[2][1] || CONTACT_PHONE_NUMBER).trim();
   const notifyEmail = String(values[3][1] || "").trim();
+  const motherSheetId = extractSpreadsheetId(values[4][1]);
 
   let deadline = null;
   if (Object.prototype.toString.call(deadlineRaw) === "[object Date]") {
@@ -608,7 +628,112 @@ function getSettings(ss) {
     if (!isNaN(parsed.getTime())) deadline = parsed;
   }
 
-  return { deadline, contactLabel, contactNumber, notifyEmail };
+  return { deadline, contactLabel, contactNumber, notifyEmail, motherSheetId };
+}
+
+const MOTHER_SHEET_NAME = "集約データ（マザーシート）";
+const MOTHER_HEADERS = [
+  "物件名", "部屋番号", "氏名", "電話", "携帯", "確定日程", "備考",
+  "第1希望", "第2希望", "第3希望", "最終更新日時",
+];
+
+// マザースプレッドシート側に集約データシートが無ければ、見出し付きで作成する。
+function ensureMotherSheet(motherSs) {
+  let sheet = motherSs.getSheetByName(MOTHER_SHEET_NAME);
+  if (!sheet) {
+    sheet = motherSs.insertSheet(MOTHER_SHEET_NAME);
+    sheet.getRange(1, 1, 1, MOTHER_HEADERS.length)
+      .setValues([MOTHER_HEADERS])
+      .setFontWeight("bold")
+      .setBackground(GRAY);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+// この建物（入居者一覧）の現在のデータを、「設定」シートで指定されたマザー
+// スプレッドシートに反映する。同じ物件名の既存行はいったん削除してから書き直す
+// （洗い替え方式。追記だと再同期のたびに行が際限なく重複するため）。
+// 確認コード（G列）は複数建物分が1か所に集まるリスクがあるため一切書き込まない。
+// マザーが未設定・開けない場合は何もせずfalseを返す（呼び出し元の処理は止めない）。
+function syncToMotherSheet(ss) {
+  const settings = getSettings(ss);
+  if (!settings.motherSheetId) return false;
+
+  let motherSs;
+  try {
+    motherSs = SpreadsheetApp.openById(settings.motherSheetId);
+  } catch (err) {
+    logFormError(ss, `マザースプレッドシートを開けませんでした（${err}）。URL・アクセス権をご確認ください。`);
+    return false;
+  }
+
+  const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "");
+  const sheet = ensureMotherSheet(motherSs);
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    const names = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (let i = names.length - 1; i >= 0; i--) {
+      if (String(names[i][0]) === buildingName) {
+        sheet.deleteRow(i + 2);
+      }
+    }
+  }
+
+  const now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy/MM/dd HH:mm");
+  const rowsToAppend = [];
+  ss.getSheets().forEach((s) => {
+    if (!isRoomDataSheet(s)) return;
+    const last = s.getLastRow();
+    if (last < 3) return;
+    const values = s.getRange(3, 1, last - 2, PREF_COLS[2]).getValues(); // A〜J列（G列=確認コードは使わない）
+    values.forEach((row) => {
+      const roomRaw = row[0];
+      if (roomRaw === "" || roomRaw === null) return;
+      rowsToAppend.push([
+        buildingName,
+        formatRoom(roomRaw),
+        row[1], // 氏名
+        row[2], // 電話
+        row[3], // 携帯
+        row[4], // 確定日程
+        row[5], // 備考
+        row[PREF_COLS[0] - 1], // 第1希望
+        row[PREF_COLS[1] - 1], // 第2希望
+        row[PREF_COLS[2] - 1], // 第3希望
+        now,
+      ]);
+    });
+  });
+
+  if (rowsToAppend.length > 0) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAppend.length, MOTHER_HEADERS.length).setValues(rowsToAppend);
+  }
+  return true;
+}
+
+// メニュー「マザーデータへ同期する」から実行する。
+function syncToMotherSheetManual() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const settings = getSettings(ss);
+  if (!settings.motherSheetId) {
+    ui.alert(
+      "マザースプレッドシートが未設定です。\n" +
+        "「設定」シートの「マザースプレッドシートのURL（任意）」にURLを入力してから、もう一度実行してください。"
+    );
+    return;
+  }
+  const ok = syncToMotherSheet(ss);
+  if (ok) {
+    ui.alert("マザーデータへの同期が完了しました。");
+  } else {
+    ui.alert(
+      "マザースプレッドシートへの同期に失敗しました。「フォーム取込エラー」シートに詳細を記録しました。" +
+        "URL・アクセス権をご確認ください。"
+    );
+  }
 }
 
 const CONFLICT_NOTE_PREFIX = "⚠ 日程が重複しています：";
@@ -970,6 +1095,9 @@ function applyFormResponse(ss, itemResponses) {
       }
     }
   }
+
+  // 「設定」シートにマザースプレッドシートが指定されていれば、最新の状態を反映する。
+  syncToMotherSheet(ss);
 }
 
 function onKoujiFormSubmit(e) {
