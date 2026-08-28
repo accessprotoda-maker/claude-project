@@ -153,12 +153,30 @@ function formatRoom(room) {
 // 工程表・フォーム取込エラー・QR一覧（社内用）・設定シートは部屋データとして扱わない
 function isRoomDataSheet(sheet) {
   const name = sheet.getName();
-  return (
-    name !== SCHEDULE_SHEET_NAME &&
-    name !== ERROR_SHEET_NAME &&
-    name !== QR_LIST_SHEET_NAME &&
-    name !== SETTINGS_SHEET_NAME
-  );
+  if (
+    name === SCHEDULE_SHEET_NAME ||
+    name === ERROR_SHEET_NAME ||
+    name === QR_LIST_SHEET_NAME ||
+    name === SETTINGS_SHEET_NAME
+  ) {
+    return false;
+  }
+  // Googleフォームの回答が自動保存されるシート（例:「フォームの回答 1」）は、
+  // 1行目A列が必ず「タイムスタンプ」になるため、これで入居者一覧と区別する
+  // （シート名は変更・複数化されうるため、名前ではなくこの構造で判定する）。
+  if (String(sheet.getRange(1, 1).getValue() || "") === "タイムスタンプ") {
+    return false;
+  }
+  return true;
+}
+
+// 入居者一覧の物件名（A1）を取得する。スプレッドシートの一番左のタブが
+// 常に入居者一覧とは限らない（Googleフォームの回答シートが左側に来ることがあるため）、
+// シートの並び順ではなくisRoomDataSheetで判定した最初のシートから取得する。
+function getBuildingName(ss, fallback) {
+  const sheet = ss.getSheets().find((s) => isRoomDataSheet(s));
+  const value = sheet ? sheet.getRange(1, 1).getValue() : "";
+  return String(value || fallback || "");
 }
 
 function commonAreaDate(month, day, weekday) {
@@ -672,7 +690,7 @@ function syncToMotherSheet(ss) {
     return false;
   }
 
-  const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "");
+  const buildingName = getBuildingName(ss, "");
   const sheet = ensureMotherSheet(motherSs);
 
   const lastRow = sheet.getLastRow();
@@ -824,7 +842,7 @@ function reportScheduleConflicts() {
 function createOrUpdateKoujiForm() {
   const ui = SpreadsheetApp.getUi();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
+  const buildingName = getBuildingName(ss, "工事");
 
   ensureSheetLayout(ss);
   const rooms = getRoomList(ss);
@@ -1167,7 +1185,7 @@ function createPerRoomQrSlips() {
   }
 
   const settings = getSettings(ss);
-  const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
+  const buildingName = getBuildingName(ss, "工事");
   const presentation = SlidesApp.create(`${buildingName} 工事アンケートQRコード`);
   const placeholderSlide = presentation.getSlides()[0];
   let failedCount = 0;
@@ -1335,7 +1353,7 @@ function emailAbsenteeOwners() {
     return;
   }
 
-  const buildingName = String(ss.getSheets()[0].getRange(1, 1).getValue() || "工事");
+  const buildingName = getBuildingName(ss, "工事");
   const settings = getSettings(ss);
   const deadlineLine = settings.deadline
     ? `回答期限：${Utilities.formatDate(settings.deadline, Session.getScriptTimeZone(), "yyyy年M月d日")}まで\n\n`
