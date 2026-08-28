@@ -1182,7 +1182,7 @@ function createPerRoomQrSlips() {
 
     const titleShape = slide.insertTextBox(verticalRoomTitle(room), 615, 20, 70, 260);
     titleShape.getText().getTextStyle().setFontSize(28).setBold(true);
-    titleShape.getText().getParagraphStyle().setAlignment(SlidesApp.ParagraphAlignment.CENTER);
+    titleShape.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment.CENTER);
     slide.insertTextBox(
       "📱 スマホでぴっと読み取るだけ！QRコードをかざして、工事の希望日時をご回答ください。\n" +
         `📞 お電話でのご案内をご希望の方は、${settings.contactLabel}（${settings.contactNumber}）までご連絡ください。`,
