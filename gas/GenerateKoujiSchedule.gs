@@ -60,9 +60,12 @@
  * マザースプレッドシートへのデータ集約（複数建物を横断して閲覧したい場合）:
  *   「設定」シートに、あらかじめ用意した集約用の空のGoogleスプレッドシートのURLを
  *   入力しておくと、住民の回答が反映されるたび（および「★初期セットアップを一括実行」
- *   実行時）に、この建物の部屋データ（確認コードを除く）がそのスプレッドシートの
- *   「集約データ（マザーシート）」シートに自動で書き込まれる。複数の建物で同じ
- *   マザースプレッドシートのURLを設定すれば、1か所で全建物の状況を横断的に閲覧できる。
+ *   実行時）に、この建物のデータ（確認コードを除く）がそのスプレッドシートに
+ *   自動で書き込まれる。「一覧」シートに全建物横断のサマリー（物件名・工事の種別・
+ *   回答期限・回収率・期限超過の未回答・全建物合計）が、建物名と同じ名前のタブに
+ *   その建物の部屋ごとの詳細（部屋番号・氏名・電話番号・確定日程・第1〜第3希望）が
+ *   書き込まれる。複数の建物で同じマザースプレッドシートのURLを設定すれば、
+ *   1か所で全建物の状況を横断的に閲覧できる。
  *   「工程表」>「マザーデータへ同期する」でいつでも手動同期もできる。
  *
  *   詳しい手順は gas/README.md を参照してください。
@@ -170,10 +173,15 @@ function isRoomDataSheet(sheet) {
   return true;
 }
 
-// 入居者一覧の物件名（A1）を取得する。スプレッドシートの一番左のタブが
-// 常に入居者一覧とは限らない（Googleフォームの回答シートが左側に来ることがあるため）、
-// シートの並び順ではなくisRoomDataSheetで判定した最初のシートから取得する。
+// 建物の物件名を取得する。「設定」シートにマンション名が入力されていれば
+// それを優先する（一番確実な方法のため）。未入力の場合のみ、入居者一覧のA1から
+// 自動検出する（スプレッドシートの一番左のタブが常に入居者一覧とは限らない
+// ―Googleフォームの回答シートが左側に来ることがあるため―、シートの並び順ではなく
+// isRoomDataSheetで判定した最初のシートから取得する）。
 function getBuildingName(ss, fallback) {
+  const settings = getSettings(ss);
+  if (settings.buildingName) return settings.buildingName;
+
   const sheet = ss.getSheets().find((s) => isRoomDataSheet(s));
   const value = sheet ? sheet.getRange(1, 1).getValue() : "";
   return String(value || fallback || "");
@@ -607,6 +615,7 @@ function ensureSettingsSheet(ss) {
     ["担当者通知メール（任意・日程重複時に通知）", ""],
     ["マザースプレッドシートのURL（任意・データ集約用）", ""],
     ["工事の種別（例: インターホン・自動火災報知設備工事）", ""],
+    ["マンション名（物件名）（任意・入力すると入居者一覧のA1より優先される）", ""],
   ];
   rows.forEach(([label, defaultValue], i) => {
     const row = 2 + i;
@@ -632,13 +641,14 @@ function extractSpreadsheetId(urlOrId) {
 // 設定シートの値を読み取る。回答期限は未入力ならnull。
 function getSettings(ss) {
   const sheet = ensureSettingsSheet(ss);
-  const values = sheet.getRange(2, 1, 6, 2).getValues();
+  const values = sheet.getRange(2, 1, 7, 2).getValues();
   const deadlineRaw = values[0][1];
   const contactLabel = String(values[1][1] || CONTACT_PHONE_LABEL).trim();
   const contactNumber = String(values[2][1] || CONTACT_PHONE_NUMBER).trim();
   const notifyEmail = String(values[3][1] || "").trim();
   const motherSheetId = extractSpreadsheetId(values[4][1]);
   const workType = String(values[5][1] || "").trim();
+  const buildingName = String(values[6][1] || "").trim();
 
   let deadline = null;
   if (Object.prototype.toString.call(deadlineRaw) === "[object Date]") {
@@ -648,34 +658,50 @@ function getSettings(ss) {
     if (!isNaN(parsed.getTime())) deadline = parsed;
   }
 
-  return { deadline, contactLabel, contactNumber, notifyEmail, motherSheetId, workType };
+  return { deadline, contactLabel, contactNumber, notifyEmail, motherSheetId, workType, buildingName };
 }
 
-const MOTHER_SHEET_NAME = "集約データ（マザーシート）";
-const MOTHER_HEADERS = [
-  "物件名", "工事の種別", "部屋番号", "氏名", "電話", "携帯", "確定日程", "備考",
-  "第1希望", "第2希望", "第3希望", "最終更新日時",
+// 旧バージョン（全建物を1枚の表に混在させる方式）で使っていたシート名。
+// 新しい建物別タブ方式に移行した際に、紛らわしいので見つかれば削除する。
+const LEGACY_MOTHER_SHEET_NAME = "集約データ（マザーシート）";
+
+const MOTHER_SUMMARY_SHEET_NAME = "一覧";
+const MOTHER_SUMMARY_HEADERS = [
+  "物件名", "工事の種別", "回答期限", "回収率", "期限超過の未回答", "最終更新日時",
+];
+const MOTHER_SUMMARY_TOTAL_COL = 8; // H列（表とは1列空けて集計欄を置く）
+const MOTHER_DETAIL_HEADERS = [
+  "部屋番号", "氏名", "電話番号", "確定日程", "第1希望", "第2希望", "第3希望", "最終更新日時",
 ];
 
-// マザースプレッドシート側に集約データシートが無ければ、見出し付きで作成する。
-// 見出し行は毎回最新のMOTHER_HEADERSで上書きする（列を追加した場合も、既存の
-// マザーシートを作り直さずに済むようにするため。データ行には影響しない）。
-function ensureMotherSheet(motherSs) {
-  let sheet = motherSs.getSheetByName(MOTHER_SHEET_NAME);
+// スプレッドシートのタブ名として使えない文字を取り除く。空になった場合や
+// 元が空欄だった場合は、代わりのタブ名を返す。
+function sanitizeSheetName(name) {
+  const cleaned = String(name || "").replace(/[[\]*?/\\:]/g, "").trim();
+  return cleaned.slice(0, 90) || "（物件名未設定）";
+}
+
+// マザースプレッドシート側に「一覧」（サマリー）シートが無ければ作成する。
+// 見出し行は毎回最新のMOTHER_SUMMARY_HEADERSで上書きする（データ行には影響しない）。
+function ensureMotherSummarySheet(motherSs) {
+  let sheet = motherSs.getSheetByName(MOTHER_SUMMARY_SHEET_NAME);
   if (!sheet) {
-    sheet = motherSs.insertSheet(MOTHER_SHEET_NAME);
+    sheet = motherSs.insertSheet(MOTHER_SUMMARY_SHEET_NAME);
     sheet.setFrozenRows(1);
   }
-  sheet.getRange(1, 1, 1, MOTHER_HEADERS.length)
-    .setValues([MOTHER_HEADERS])
+  sheet.getRange(1, 1, 1, MOTHER_SUMMARY_HEADERS.length)
+    .setValues([MOTHER_SUMMARY_HEADERS])
     .setFontWeight("bold")
     .setBackground(GRAY);
   return sheet;
 }
 
 // この建物（入居者一覧）の現在のデータを、「設定」シートで指定されたマザー
-// スプレッドシートに反映する。同じ物件名の既存行はいったん削除してから書き直す
-// （洗い替え方式。追記だと再同期のたびに行が際限なく重複するため）。
+// スプレッドシートに反映する。
+// - 「一覧」シートに、この建物の物件名・工事の種別・回収率を1行だけ書く
+//   （既存の同じ物件名の行はいったん削除してから書き直す。洗い替え方式）
+// - 物件名と同じ名前のタブに、部屋ごとの詳細（氏名・電話番号・確定日程・第1〜3希望）を書く
+//   （タブ自体を作り直すため、部屋が減った場合も古い行は残らない）
 // 確認コード（G列）は複数建物分が1か所に集まるリスクがあるため一切書き込まない。
 // マザーが未設定・開けない場合は何もせずfalseを返す（呼び出し元の処理は止めない）。
 function syncToMotherSheet(ss) {
@@ -690,21 +716,24 @@ function syncToMotherSheet(ss) {
     return false;
   }
 
+  const legacySheet = motherSs.getSheetByName(LEGACY_MOTHER_SHEET_NAME);
+  if (legacySheet) motherSs.deleteSheet(legacySheet);
+
   const buildingName = getBuildingName(ss, "");
-  const sheet = ensureMotherSheet(motherSs);
-
-  const lastRow = sheet.getLastRow();
-  if (lastRow > 1) {
-    const names = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-    for (let i = names.length - 1; i >= 0; i--) {
-      if (String(names[i][0]) === buildingName) {
-        sheet.deleteRow(i + 2);
-      }
-    }
-  }
-
   const now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy/MM/dd HH:mm");
-  const rowsToAppend = [];
+
+  // 建物ごとの詳細タブ（物件名と同じ名前）を作り直す
+  const detailSheetName = sanitizeSheetName(buildingName);
+  const oldDetailSheet = motherSs.getSheetByName(detailSheetName);
+  if (oldDetailSheet) motherSs.deleteSheet(oldDetailSheet);
+  const detailSheet = motherSs.insertSheet(detailSheetName);
+  detailSheet.getRange(1, 1, 1, MOTHER_DETAIL_HEADERS.length)
+    .setValues([MOTHER_DETAIL_HEADERS])
+    .setFontWeight("bold")
+    .setBackground(GRAY);
+  detailSheet.setFrozenRows(1);
+
+  const detailRows = [];
   ss.getSheets().forEach((s) => {
     if (!isRoomDataSheet(s)) return;
     const last = s.getLastRow();
@@ -713,15 +742,11 @@ function syncToMotherSheet(ss) {
     values.forEach((row) => {
       const roomRaw = row[0];
       if (roomRaw === "" || roomRaw === null) return;
-      rowsToAppend.push([
-        buildingName,
-        settings.workType,
+      detailRows.push([
         formatRoom(roomRaw),
         row[1], // 氏名
-        row[2], // 電話
-        row[3], // 携帯
+        row[2], // 電話番号
         row[4], // 確定日程
-        row[5], // 備考
         row[PREF_COLS[0] - 1], // 第1希望
         row[PREF_COLS[1] - 1], // 第2希望
         row[PREF_COLS[2] - 1], // 第3希望
@@ -729,10 +754,58 @@ function syncToMotherSheet(ss) {
       ]);
     });
   });
-
-  if (rowsToAppend.length > 0) {
-    sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAppend.length, MOTHER_HEADERS.length).setValues(rowsToAppend);
+  if (detailRows.length > 0) {
+    detailSheet.getRange(2, 1, detailRows.length, MOTHER_DETAIL_HEADERS.length).setValues(detailRows);
   }
+
+  // 「一覧」シートの回収率・期限超過の未回答を更新する
+  const totalRooms = getRoomList(ss).length;
+  const { notSubmitted } = collectRoomData(ss);
+  const respondedCount = totalRooms - notSubmitted.length;
+  const rateText =
+    totalRooms > 0
+      ? `${respondedCount}/${totalRooms}件（${Math.round((respondedCount / totalRooms) * 1000) / 10}%）`
+      : "対象部屋なし";
+
+  const deadlineText = settings.deadline
+    ? Utilities.formatDate(settings.deadline, Session.getScriptTimeZone(), "yyyy年M月d日")
+    : "未設定";
+  // 締切日の終わり（23:59:59）を過ぎているかどうか（closeFormIfDeadlinePassedと同じ基準）
+  const deadlineEnd = settings.deadline
+    ? new Date(settings.deadline.getFullYear(), settings.deadline.getMonth(), settings.deadline.getDate() + 1)
+    : null;
+  const isOverdue = !!deadlineEnd && new Date() >= deadlineEnd;
+  const overdueUnansweredCount = isOverdue ? notSubmitted.length : 0;
+
+  const summarySheet = ensureMotherSummarySheet(motherSs);
+  const summaryLastRow = summarySheet.getLastRow();
+  if (summaryLastRow > 1) {
+    const names = summarySheet.getRange(2, 1, summaryLastRow - 1, 1).getValues();
+    for (let i = names.length - 1; i >= 0; i--) {
+      if (String(names[i][0]) === buildingName) {
+        summarySheet.deleteRow(i + 2);
+      }
+    }
+  }
+  summarySheet.appendRow([buildingName, settings.workType, deadlineText, rateText, overdueUnansweredCount, now]);
+
+  // 全建物合計（期限超過の未回答）を、表の少し右側に書いておく
+  // （このシートの最新の状態から毎回計算し直すため、常に実態と一致する）
+  const updatedLastRow = summarySheet.getLastRow();
+  let overdueTotal = 0;
+  if (updatedLastRow > 1) {
+    const overdueValues = summarySheet.getRange(2, 5, updatedLastRow - 1, 1).getValues();
+    overdueValues.forEach((r) => {
+      overdueTotal += Number(r[0]) || 0;
+    });
+  }
+  summarySheet.getRange(1, MOTHER_SUMMARY_TOTAL_COL)
+    .setValue("全建物合計（期限超過の未回答）")
+    .setFontWeight("bold");
+  summarySheet.getRange(2, MOTHER_SUMMARY_TOTAL_COL)
+    .setValue(overdueTotal)
+    .setFontWeight("bold");
+
   return true;
 }
 
